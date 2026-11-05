@@ -35,18 +35,28 @@ const VENEZUELA_STATES = [
 
 const GALLERY_IMAGES = [
   {
-    src: "/viking/viking_pouch_front.jpg",
-    alt: "Gummies Viking Borojó y Chontaduro - Empaque Oficial Individual 2 Gomitas",
-    tag: "EMPAQUE ORIGINAL"
+    src: "/viking/viking_bottle_splash.jpg",
+    alt: "Gummies Viking Borojó y Chontaduro - Envase de 30 Gomitas Masticables",
+    tag: "FRASCO 30 GOMITAS • VITALIDAD"
+  },
+  {
+    src: "/viking/viking_bottle_benefits.jpg",
+    alt: "6 Pilares de Rendimiento y Nutrición Gummies Viking",
+    tag: "6 BENEFICIOS ACTIVOS"
   },
   {
     src: "/viking/viking_pouch_with_gummies.jpg",
-    alt: "Gummies Viking con 2 Gomitas en Forma de León - Rosa y Cyan",
-    tag: "2 GOMITAS EN FORMA DE LEÓN"
+    alt: "Gomitas en Forma de León - Rosa y Cyan Eléctrico",
+    tag: "FORMA DE LEÓN • SABOR DULCE"
+  },
+  {
+    src: "/viking/viking_pouch_front.jpg",
+    alt: "Sachet Individual de Bolsillo para Citas",
+    tag: "SACHET DE BOLSILLO • OBSEQUIO"
   },
   {
     src: "/viking/viking_pouch_real_table.jpg",
-    alt: "Presentación Real Gummies Viking en Mano",
+    alt: "Presentación Real en Mano",
     tag: "FOTO REAL EN MANO"
   }
 ];
@@ -56,7 +66,6 @@ export default function VikingLanding() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [showStickyBar, setShowStickyBar] = useState(false);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   // Formulario COD
   const [formData, setFormData] = useState({
@@ -97,7 +106,7 @@ export default function VikingLanding() {
     touchEndX.current = 0;
   };
 
-  // Sticky Bar en móvil
+  // Sticky Bar inteligente en móvil
   useEffect(() => {
     const handleScroll = () => {
       if (!ctaButtonRef.current) return;
@@ -118,8 +127,8 @@ export default function VikingLanding() {
       (window as unknown as { fbq: (...args: unknown[]) => void }).fbq("track", "ViewContent", {
         content_name: "Gummies Viking Borojó & Chontaduro",
         content_category: "Vitalidad y Pareja",
-        content_ids: ["gummies_viking_2pack"],
-        value: 25.00,
+        content_ids: ["gummies_viking_combo"],
+        value: 34.99,
         currency: "USD"
       });
     }
@@ -177,9 +186,10 @@ export default function VikingLanding() {
         "*DETALLE DEL COMBO:*",
         `- Producto: Gummies Viking (Borojó & Chontaduro)`,
         `- Pack: ${selectedPack.name}`,
-        `- Cantidad: ${selectedPack.quantity} ${selectedPack.quantity === 1 ? 'Sobre' : 'Sobres'} (${selectedPack.gummies} Gomitas Masticables)`,
+        `- Total Gomitas: ${selectedPack.totalGummies} Gomitas Masticables`,
+        `- Incluye: ${selectedPack.giftTag}`,
         `- Total a Pagar: $${selectedPack.price.toFixed(2)} USD`,
-        `- Despacho: ${selectedPack.hasFreeShipping ? 'ENVÍO GRATIS POR TEALCA' : 'Flete cobro en destino por Tealca'}`,
+        `- Despacho: ENVÍO 100% GRATIS POR TEALCA`,
         "",
         "*DATOS PARA EL ENVÍO PRIVADO:*",
         `- Cliente: ${formData.fullName.trim()}`,
@@ -193,7 +203,7 @@ export default function VikingLanding() {
         "*MODALIDAD:* PAGO AL RECIBIR POR TEALCA",
         "Empaque 100% sellado y neutro (sobre ciego sin referencias exteriores).",
         "",
-        "Hola, acabo de llenar mis datos en la web para pedir mis Gummies Viking. ¿Me confirman para coordinar el despacho por Tealca?"
+        "Hola, acabo de llenar mis datos en la web para pedir mi Combo de Gummies Viking. ¿Me confirman para coordinar el despacho por Tealca?"
       ];
 
       const message = messageLines.join("\n");
@@ -225,15 +235,15 @@ export default function VikingLanding() {
   };
 
   return (
-    <div className="min-h-screen bg-[#090b0e] text-slate-100 font-sans selection:bg-[#ff2d78] selection:text-white pb-24 md:pb-12">
+    <div className="min-h-screen bg-[#07090d] text-slate-100 font-sans selection:bg-[#ff007f] selection:text-white pb-24 md:pb-12">
       {/* 1. TOP MARQUEE BANNER DE URGENCIA */}
       <div className="bg-gradient-to-r from-[#ff007f] via-[#7928ca] to-[#00d4ff] text-white py-2 px-3 text-center text-xs md:text-sm font-black uppercase tracking-wider shadow-md overflow-hidden flex items-center justify-center gap-2">
         <span className="animate-pulse">🔥</span>
-        <span>MÁS DE 1.000 PARES EN ALMACÉN NACIONAL • ENVÍO GRATIS EN COMBOS • PAGA EN CASA POR TEALCA</span>
+        <span>STOCK EN ALMACÉN NACIONAL • ENVÍO GRATIS EN TODOS LOS COMBOS • PAGA EN CASA POR TEALCA</span>
         <span className="hidden sm:inline">🇻🇪</span>
       </div>
 
-      {/* 2. HEADER MINIMALISTA DE MARCA */}
+      {/* 2. HEADER MINIMALISTA DE MARCA (SIN BOTÓN PREMATURO) */}
       <header className="border-b border-white/10 bg-[#0d1017]/90 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -245,7 +255,7 @@ export default function VikingLanding() {
                 GUMMIES VIKING
               </span>
               <span className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">
-                Borojó & Chontaduro • 02 Gummies
+                Borojó & Chontaduro • Frasco & Sobres
               </span>
             </div>
           </div>
@@ -264,23 +274,23 @@ export default function VikingLanding() {
         {/* TITULAR Y SUBTÍTULO */}
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-pink-500/10 border border-pink-500/30 text-pink-300">
-            <span>✨</span> Edición Especial Parejas • Sabor Frutal Vigorizante
+            <span>✨</span> Fórmula Ancestral • Deseo, Vigor y Rendimiento
           </div>
           <h1 className="text-2xl md:text-4xl font-extrabold text-white tracking-tight leading-tight">
-            Enciende la Química de tus Noches con{" "}
+            Vitalidad y Rendimiento para tus Noches con{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-fuchsia-300 to-cyan-400">
               Gummies Viking
             </span>
           </h1>
           <p className="text-sm md:text-base text-slate-300 max-w-xl mx-auto leading-relaxed">
-            Gomitas masticables de gelatina con extractos naturales de <strong>Borojó y Chontaduro</strong>. Diseñadas para disfrutar en pareja 30 minutos antes de la cita.
+            Gomitas masticables funcionales elaboradas con <strong>Borojó, Chontaduro, Vitaminas y Minerales</strong>. Energía natural y resistencia en un formato delicioso y práctico.
           </p>
         </div>
 
         {/* CARRUSEL DE FOTOS REALES */}
         <div className="relative max-w-md mx-auto">
           <div
-            className="relative aspect-4/5 w-full rounded-2xl overflow-hidden bg-[#151922] border-2 border-white/10 shadow-2xl"
+            className="relative aspect-square w-full rounded-2xl overflow-hidden bg-[#151922] border-2 border-white/10 shadow-2xl"
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
@@ -294,21 +304,21 @@ export default function VikingLanding() {
               sizes="(max-width: 768px) 100vw, 450px"
             />
             {/* Tag flotante */}
-            <div className="absolute top-3 left-3 bg-black/80 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border border-white/20">
+            <div className="absolute top-3 left-3 bg-black/85 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full border border-pink-500/30 shadow-md">
               {GALLERY_IMAGES[currentSlide].tag}
             </div>
 
             {/* Flechas de navegación */}
             <button
               onClick={() => setCurrentSlide((prev) => (prev - 1 + GALLERY_IMAGES.length) % GALLERY_IMAGES.length)}
-              className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-xs cursor-pointer border border-white/15"
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/70 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-xs cursor-pointer border border-white/20"
               aria-label="Anterior"
             >
               ‹
             </button>
             <button
               onClick={() => setCurrentSlide((prev) => (prev + 1) % GALLERY_IMAGES.length)}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-xs cursor-pointer border border-white/15"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/70 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-xs cursor-pointer border border-white/20"
               aria-label="Siguiente"
             >
               ›
@@ -316,13 +326,13 @@ export default function VikingLanding() {
           </div>
 
           {/* Miniaturas de fotos */}
-          <div className="flex justify-center gap-2 mt-3">
+          <div className="flex justify-center gap-2 mt-3 overflow-x-auto pb-1">
             {GALLERY_IMAGES.map((img, idx) => (
               <button
                 key={idx}
                 onClick={() => setCurrentSlide(idx)}
-                className={`relative w-14 h-14 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
-                  currentSlide === idx ? "border-[#ff007f] scale-105 shadow-md shadow-pink-500/30" : "border-white/15 opacity-60"
+                className={`relative w-14 h-14 shrink-0 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
+                  currentSlide === idx ? "border-[#ff007f] scale-105 shadow-md shadow-pink-500/40" : "border-white/15 opacity-60"
                 }`}
               >
                 <Image src={img.src} alt={img.alt} fill className="object-cover" />
@@ -331,38 +341,70 @@ export default function VikingLanding() {
           </div>
         </div>
 
-        {/* 4. BENEFICIOS CLAVE EN 3 TARJETAS COMPACTAS */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-          <div className="bg-[#121620] p-3.5 rounded-xl border border-white/10 flex items-center gap-3">
-            <span className="text-2xl p-2 rounded-lg bg-pink-500/15 border border-pink-500/30">🦁</span>
-            <div>
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">Borojó & Chontaduro</h3>
-              <p className="text-[11px] text-slate-300">Extractos naturales de máxima vitalidad y resistencia.</p>
-            </div>
+        {/* 4. LOS 6 PILARES DE VITALIDAD (INSPIRADO EN EL DISEÑO Y DEALZONE) */}
+        <section className="bg-[#10141d] p-4 md:p-5 rounded-2xl border border-white/10 space-y-3">
+          <div className="text-center space-y-0.5">
+            <span className="text-[11px] font-bold text-cyan-400 uppercase tracking-wider">Fórmula 6 en 1</span>
+            <h2 className="text-base md:text-lg font-black text-white">Lo que tu cuerpo necesita en deliciosas gomas</h2>
           </div>
 
-          <div className="bg-[#121620] p-3.5 rounded-xl border border-white/10 flex items-center gap-3">
-            <span className="text-2xl p-2 rounded-lg bg-cyan-500/15 border border-cyan-500/30">🔒</span>
-            <div>
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">Sobre 100% Ciego</h3>
-              <p className="text-[11px] text-slate-300">Empaque neutro sin referencias ni logos externos.</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+            <div className="bg-[#161a25] p-3 rounded-xl border border-white/10 flex items-center gap-2.5">
+              <span className="text-xl">⚡</span>
+              <div>
+                <strong className="text-white block">Energía Pura</strong>
+                <span className="text-[10px] text-slate-400">Sin taquicardia</span>
+              </div>
+            </div>
+
+            <div className="bg-[#161a25] p-3 rounded-xl border border-white/10 flex items-center gap-2.5">
+              <span className="text-xl">💓</span>
+              <div>
+                <strong className="text-white block">Vitalidad & Deseo</strong>
+                <span className="text-[10px] text-slate-400">Borojó + Chontaduro</span>
+              </div>
+            </div>
+
+            <div className="bg-[#161a25] p-3 rounded-xl border border-white/10 flex items-center gap-2.5">
+              <span className="text-xl">💪</span>
+              <div>
+                <strong className="text-white block">Fuerza Activa</strong>
+                <span className="text-[10px] text-slate-400">Mayor resistencia</span>
+              </div>
+            </div>
+
+            <div className="bg-[#161a25] p-3 rounded-xl border border-white/10 flex items-center gap-2.5">
+              <span className="text-xl">🏃</span>
+              <div>
+                <strong className="text-white block">Rendimiento</strong>
+                <span className="text-[10px] text-slate-400">30 min antes</span>
+              </div>
+            </div>
+
+            <div className="bg-[#161a25] p-3 rounded-xl border border-white/10 flex items-center gap-2.5">
+              <span className="text-xl">🍃</span>
+              <div>
+                <strong className="text-white block">Minerales</strong>
+                <span className="text-[10px] text-slate-400">Fortificado natural</span>
+              </div>
+            </div>
+
+            <div className="bg-[#161a25] p-3 rounded-xl border border-white/10 flex items-center gap-2.5">
+              <span className="text-xl">🔒</span>
+              <div>
+                <strong className="text-white block">Sobre Ciego</strong>
+                <span className="text-[10px] text-slate-400">100% Discreto</span>
+              </div>
             </div>
           </div>
+        </section>
 
-          <div className="bg-[#121620] p-3.5 rounded-xl border border-white/10 flex items-center gap-3">
-            <span className="text-2xl p-2 rounded-lg bg-emerald-500/15 border border-emerald-500/30">🇻🇪</span>
-            <div>
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">Paga al Recibir</h3>
-              <p className="text-[11px] text-slate-300">Tealca contra entrega en efectivo o Pago Móvil.</p>
-            </div>
-          </div>
-        </div>
-
-        {/* 5. SELECTOR DE OFERTAS Y COMBOS (DECOY EFFECT) */}
-        <section className="bg-[#11141c] p-4 md:p-6 rounded-2xl border-2 border-white/10 shadow-xl space-y-4">
+        {/* 5. SELECTOR DE OFERTAS Y COMBOS (FRASCO Y GOMITAS) */}
+        <section className="bg-[#11151f] p-4 md:p-6 rounded-2xl border-2 border-white/10 shadow-xl space-y-4">
           <div className="text-center space-y-1">
             <span className="text-xs font-black text-pink-400 uppercase tracking-widest">Paso 1: Elige tu Combo</span>
-            <h2 className="text-xl md:text-2xl font-black text-white">Selecciona tu Paquete de Gummies Viking</h2>
+            <h2 className="text-xl md:text-2xl font-black text-white">Selecciona tu Presentación de Gummies Viking</h2>
+            <p className="text-xs text-slate-400">Todos los combos incluyen <strong>Envío 100% Gratis por Tealca</strong> a nivel nacional</p>
           </div>
 
           <div className="space-y-3">
@@ -372,14 +414,14 @@ export default function VikingLanding() {
                 <div
                   key={pack.id}
                   onClick={() => setSelectedPack(pack)}
-                  className={`relative p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                  className={`relative ${pack.recommended ? "pt-5 pb-4 px-4" : "p-4"} rounded-xl border-2 transition-all cursor-pointer ${
                     isSelected
                       ? "bg-gradient-to-r from-pink-950/40 via-purple-950/30 to-cyan-950/40 border-[#ff007f] shadow-lg shadow-pink-500/20 scale-[1.01]"
-                      : "bg-[#161a24] border-white/10 hover:border-white/20"
+                      : "bg-[#161b26] border-white/10 hover:border-white/20"
                   }`}
                 >
                   {pack.recommended && (
-                    <span className="absolute -top-3 right-4 bg-gradient-to-r from-[#ff007f] to-[#00d4ff] text-white text-[10px] font-black uppercase tracking-wider px-3 py-0.5 rounded-full shadow-md">
+                    <span className="absolute -top-3 left-3 sm:left-auto sm:right-4 bg-gradient-to-r from-[#ff007f] to-[#00d4ff] text-white text-[10px] font-black uppercase tracking-wider px-3 py-0.5 rounded-full shadow-md">
                       {pack.badge}
                     </span>
                   )}
@@ -394,11 +436,11 @@ export default function VikingLanding() {
                         {isSelected && <span className="w-2 h-2 rounded-full bg-white"></span>}
                       </div>
                       <div>
-                        <h3 className="font-extrabold text-sm md:text-base text-white flex items-center gap-2">
+                        <h3 className="font-extrabold text-sm md:text-base text-white">
                           {pack.name}
                         </h3>
                         <p className="text-xs text-slate-300">
-                          {pack.quantity} {pack.quantity === 1 ? "Sobre individual" : "Sobres"} • {pack.gummies} Gomitas masticables
+                          {pack.totalGummies} Gomitas Masticables • {pack.giftTag}
                         </p>
                         <span className="text-[11px] font-bold text-pink-400 block mt-0.5">
                           {pack.savings}
@@ -406,7 +448,7 @@ export default function VikingLanding() {
                       </div>
                     </div>
 
-                    <div className="text-right">
+                    <div className="text-right shrink-0">
                       <div className="flex items-baseline gap-1.5 justify-end">
                         <span className="text-xs text-slate-400 line-through">
                           {money(pack.regularPrice)}
@@ -415,8 +457,8 @@ export default function VikingLanding() {
                           {money(pack.price)}
                         </span>
                       </div>
-                      <span className={`text-[10px] font-bold uppercase block ${pack.hasFreeShipping ? "text-emerald-400" : "text-amber-400"}`}>
-                        {pack.hasFreeShipping ? "Envío 100% Gratis" : "+ Flete cobro en destino"}
+                      <span className="text-[10px] font-bold uppercase text-emerald-400 block">
+                        Envío 100% Gratis
                       </span>
                     </div>
                   </div>
@@ -440,7 +482,7 @@ export default function VikingLanding() {
           </div>
         </section>
 
-        {/* 6. GUÍA DE USO Y PREGUNTAS FRECUENTES */}
+        {/* 6. GUÍA DE USO Y PREGUNTAS FRECUENTES (INSPIRADO EN DEALZONE) */}
         <section className="bg-[#11141c] p-4 md:p-6 rounded-2xl border border-white/10 space-y-4">
           <h2 className="text-lg font-black text-white text-center">
             Todo lo que necesitas saber antes de pedir
@@ -450,14 +492,14 @@ export default function VikingLanding() {
             <div className="bg-[#161a24] p-3.5 rounded-xl border border-white/10 space-y-1">
               <h3 className="font-bold text-pink-300">¿Cómo y cuándo consumirlas?</h3>
               <p className="text-slate-300 leading-relaxed">
-                Consume 1 o 2 gomitas masticables entre <strong>30 y 45 minutos antes</strong> de la cita. Su textura de gelatina permite una asimilación rápida.
+                Consume <strong>1 o 2 gomitas masticables entre 30 y 45 minutos antes</strong> de la cita. Su textura de gelatina permite una asimilación rápida en el organismo.
               </p>
             </div>
 
             <div className="bg-[#161a24] p-3.5 rounded-xl border border-white/10 space-y-1">
               <h3 className="font-bold text-cyan-300">¿El empaque es discreto?</h3>
               <p className="text-slate-300 leading-relaxed">
-                <strong>100% discreto.</strong> El paquete llega en un sobre neutro totalmente sellado, sin leyendas, logos ni referencias al contenido exterior.
+                <strong>100% discreto.</strong> El paquete llega en un sobre neutro totalmente sellado sin leyendas, logos ni referencias al contenido exterior.
               </p>
             </div>
 
@@ -471,13 +513,13 @@ export default function VikingLanding() {
             <div className="bg-[#161a24] p-3.5 rounded-xl border border-white/10 space-y-1">
               <h3 className="font-bold text-emerald-300">¿Cómo realizo el pago?</h3>
               <p className="text-slate-300 leading-relaxed">
-                Pagas únicamente cuando recibas el paquete en tus manos en Tealca: en dólares en efectivo, Pago Móvil (a tasa oficial) o por Binance USDT.
+                Pagas únicamente cuando recibas el paquete en tus manos en Tealca: en dólares en efectivo, Pago Móvil (a tasa oficial) o por Binance USDT con 15% OFF.
               </p>
             </div>
           </div>
         </section>
 
-        {/* 7. FOOTER Y POLÍTICAS */}
+        {/* 7. FOOTER */}
         <footer className="border-t border-white/10 pt-6 text-center text-xs text-slate-500 space-y-3">
           <p>
             © {new Date().getFullYear()} Gummies Viking Venezuela. Suplemento alimenticio natural a base de Borojó y Chontaduro.
@@ -509,8 +551,8 @@ export default function VikingLanding() {
               <span className="text-lg font-black text-white leading-tight">
                 {money(selectedPack.price)}
               </span>
-              <span className="text-[9px] text-slate-400 block">
-                {selectedPack.hasFreeShipping ? "Envío Gratis Incluido" : "+ Flete en destino"}
+              <span className="text-[9px] text-emerald-400 block">
+                Envío 100% Gratis Incluido
               </span>
             </div>
             <button
@@ -542,7 +584,7 @@ export default function VikingLanding() {
                 Completa tus datos de entrega
               </h3>
               <p className="text-xs text-slate-300 mt-1">
-                Paquete: <strong className="text-white">{selectedPack.name}</strong> • Total: <strong className="text-pink-400">{money(selectedPack.price)}</strong> {selectedPack.hasFreeShipping ? "(Envío Gratis)" : "(Flete en destino)"}
+                Paquete: <strong className="text-white">{selectedPack.name}</strong> • Total: <strong className="text-pink-400">{money(selectedPack.price)}</strong> (Envío Gratis)
               </p>
             </div>
 
@@ -646,7 +688,7 @@ export default function VikingLanding() {
         </div>
       )}
 
-      {/* 10. POP-UP DE CORTESÍA A LOS 5 SEGUNDOS */}
+      {/* 10. POP-UP DE CORTESÍA A LOS 5 SEGUNDOS (OFERTA FRASCO + REGALO) */}
       {showDiscountModal && !isCheckoutOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-backdrop-fade">
           <div className="bg-[#11141c] w-full max-w-md rounded-2xl overflow-hidden shadow-2xl border-2 border-pink-500/40 p-5 space-y-4 relative animate-modal-pop">
@@ -659,25 +701,25 @@ export default function VikingLanding() {
 
             <div className="text-center space-y-1.5 pt-1">
               <span className="inline-block bg-pink-500/20 text-pink-300 border border-pink-500/40 text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full">
-                🎁 PROMO ESTRELLA VENEZUELA
+                🎁 OFERTA ESTRELLA: FRASCO + OBSEQUIO
               </span>
               <h3 className="text-lg md:text-xl font-black text-white leading-tight">
-                ¡Lleva 3 Sobres por solo $25 y Envío Gratis!
+                ¡Lleva el Frasco de 30 Gomitas + Sachet de Bolsillo de REGALO!
               </h3>
               <p className="text-xs text-slate-300 leading-relaxed">
-                Asegura <strong>3 citas completas</strong> (6 gomitas masticables). Te ahorras $20 de producto y el flete por Tealca corre 100% por nuestra cuenta.
+                32 gomitas en total (1 mes completo + sobre de bolsillo para llevar a tus citas). Ahorras $20 de producto y el envío por Tealca corre por nuestra cuenta.
               </p>
             </div>
 
             <div className="bg-[#181d28] p-3.5 rounded-xl border border-white/15 space-y-2">
               <div className="flex justify-between items-center">
                 <div>
-                  <span className="font-bold text-xs text-white block">Combo 3 Sobres (6 Gomitas)</span>
+                  <span className="font-bold text-xs text-white block">1 Frasco (30 Gummies) + 1 Sachet Gratis</span>
                   <span className="text-[11px] text-pink-400 font-semibold">Envío 100% Gratis por Tealca</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-xs text-slate-400 line-through block">$45.00</span>
-                  <span className="text-lg font-black text-white">$25.00</span>
+                  <span className="text-xs text-slate-400 line-through block">$55.00</span>
+                  <span className="text-lg font-black text-white">$34.99</span>
                 </div>
               </div>
             </div>
@@ -689,7 +731,7 @@ export default function VikingLanding() {
               }}
               className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#ff007f] to-[#00d4ff] text-white font-black text-sm uppercase tracking-wider shadow-lg shadow-pink-500/30 hover:opacity-95 active:scale-95 transition-all cursor-pointer"
             >
-              ¡APROVECHAR 3 SOBRES X $25 Y PEDIR!
+              ¡APROVECHAR COMBO Y PEDIR AHORA!
             </button>
           </div>
         </div>
@@ -717,12 +759,12 @@ export default function VikingLanding() {
             )}
             {activeLegalModal === "shipping" && (
               <p>
-                Los despachos se realizan a través de Tealca a agencias u oficinas autorizadas a nivel nacional. El cliente paga al momento de retirar su paquete en efectivo o Pago Móvil. Los combos de 3 y 5 sobres incluyen el costo del flete nacional.
+                Los despachos se realizan a través de Tealca a agencias u oficinas autorizadas a nivel nacional. El cliente paga al momento de retirar su paquete en efectivo o Pago Móvil. Todos los combos seleccionados incluyen el flete nacional.
               </p>
             )}
             {activeLegalModal === "guide" && (
               <p>
-                Gummies Viking es un suplemento alimenticio en gomitas masticables elaborado a base de borojó y chontaduro. Se recomienda consumir 1 o 2 unidades 30 a 45 minutos antes de la actividad. No consumir en exceso. Manténgase en lugar fresco y seco.
+                Gummies Viking es un suplemento alimenticio en gomitas masticables elaborado a base de borojó y chontaduro fortificado con vitaminas y minerales. Se recomienda consumir 1 o 2 unidades 30 a 45 minutos antes de la actividad. No consumir en exceso. Manténgase en lugar fresco y seco.
               </p>
             )}
           </div>
