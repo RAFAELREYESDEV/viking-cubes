@@ -251,16 +251,10 @@ export default function VikingLanding() {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="hidden sm:inline-flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2.5 py-1 rounded-full font-bold">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-              En Stock en Venezuela
+            <span className="inline-flex items-center gap-1.5 text-[11px] text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2.5 py-1 rounded-full font-bold">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+              Almacén Nacional 🇻🇪
             </span>
-            <button
-              onClick={() => openCheckout()}
-              className="bg-gradient-to-r from-[#ff007f] to-[#d9006c] hover:opacity-90 text-white text-xs font-black px-3.5 py-1.5 rounded-full shadow-md cursor-pointer transition-all"
-            >
-              Pedir Ahora
-            </button>
           </div>
         </div>
       </header>
