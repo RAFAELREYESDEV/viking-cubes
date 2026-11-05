@@ -50,6 +50,11 @@ const GALLERY_IMAGES = [
     tag: "GOMITAS LEÓN EN PAREJA"
   },
   {
+    src: "/viking/borojo_chontaduro_fruits.jpg",
+    alt: "Ingredientes Naturales: Borojó y Chontaduro",
+    tag: "BOROJÓ & CHONTADURO"
+  },
+  {
     src: "/viking/viking_bottle_benefits.jpg",
     alt: "Fórmula de Energía y Vitalidad Gummies Viking",
     tag: "BENEFICIOS ACTIVOS"
@@ -188,18 +193,18 @@ export default function VikingLanding() {
         `- Presentación: ${selectedPack.unitLabel}`,
         `- Contenido: ${selectedPack.gummies} Gomitas Masticables`,
         `- Total a Pagar: $${selectedPack.price} USD`,
-        `- Flete: ENVÍO 100% GRATIS POR TEALCA`,
+        `- Modalidad: PAGO EN LA ENTREGA POR TEALCA (ENVÍO GRATIS)`,
         "",
         "*DATOS PARA EL ENVÍO PRIVADO:*",
         `- Cliente: ${formData.fullName.trim()}`,
         `- Teléfono: ${formData.phone.trim()}`,
         `- Estado: ${cleanState}`,
         `- Dirección o Agencia Tealca: ${formData.cityAddress.trim()}`,
-        `- Método de Pago al Recibir: ${paymentLabel}`,
+        `- Método de Pago: ${paymentLabel}`,
         ...(formData.notes?.trim() ? [`- Nota: ${formData.notes.trim()}`] : []),
         "",
         "------------------------------------",
-        "*MODALIDAD:* PAGO AL RECIBIR POR TEALCA",
+        "*MODALIDAD:* PAGO EN LA ENTREGA",
         "Empaque 100% neutro y sellado (sin marcas exteriores).",
         "",
         "Hola, acabo de llenar mis datos en la página web para pedir mis Gummies Viking. ¿Me confirman para coordinar el despacho por Tealca?"
@@ -238,7 +243,7 @@ export default function VikingLanding() {
       {/* 1. BARRA SUPERIOR PLANA Y COLORIDA */}
       <div className="bg-[#ffe600] text-black font-black text-[11px] md:text-xs py-2 px-3 text-center uppercase tracking-wider flex items-center justify-center gap-1.5 border-b-2 border-black">
         <span>⚡</span>
-        <span>ENVÍO GRATIS A TODA VENEZUELA POR TEALCA • PAGA EN CASA AL RECIBIR</span>
+        <span>ENVÍO GRATIS A TODA VENEZUELA POR TEALCA • PAGO EN LA ENTREGA</span>
         <span>🇻🇪</span>
       </div>
 
@@ -255,7 +260,7 @@ export default function VikingLanding() {
           </div>
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
-              Pago Contra Entrega
+              Pago en la Entrega
             </span>
           </div>
         </div>
@@ -272,7 +277,7 @@ export default function VikingLanding() {
             Gomitas Vigorizantes para Parejas
           </h1>
           <p className="text-xs text-slate-300 leading-relaxed">
-            Energía, resistencia y química activa para tus momentos en pareja. Delicioso sabor frutal, textura masticable y efecto rápido en 30 minutos.
+            Energía, vitalidad y complicidad activa. Delicioso sabor frutal, textura masticable y efecto rápido en 30 minutos.
           </p>
         </div>
 
@@ -330,28 +335,122 @@ export default function VikingLanding() {
           </div>
         </div>
 
-        {/* 4. BLOQUES PLANOS DE BENEFICIOS (SIN GLOBOS NI DEGRADADOS EXCESIVOS) */}
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className="bg-[#141620] border border-slate-800 p-2.5 rounded">
-            <span className="text-[#ff007f] font-black block text-[11px] uppercase">⚡ Efecto en 30 Minutos</span>
-            <p className="text-[11px] text-slate-300 mt-0.5">Asimilación rápida masticable.</p>
+        {/* 4. SECCIÓN EXACTA: QUÉ LLEVAS POR DENTRO, SIN LETRA CHICA */}
+        <section className="bg-[#141722] border-2 border-slate-700 rounded-lg p-3.5 md:p-4 space-y-3">
+          <div className="space-y-1">
+            <span className="inline-block bg-pink-500/20 text-[#ff007f] text-[9px] font-black uppercase px-2 py-0.5 rounded tracking-wide">
+              Fórmula y Respaldo
+            </span>
+            <h2 className="text-base md:text-lg font-black text-white leading-tight">
+              Qué llevas por dentro, <span className="text-[#ff007f]">sin letra chica</span>
+            </h2>
+            <p className="text-[11px] text-slate-300">
+              Gomitas fortificadas con borojó, chontaduro, vitaminas y minerales. Fabricante y registro verificable.
+            </p>
           </div>
 
-          <div className="bg-[#141620] border border-slate-800 p-2.5 rounded">
-            <span className="text-[#00f0ff] font-black block text-[11px] uppercase">👑 Borojó & Chontaduro</span>
-            <p className="text-[11px] text-slate-300 mt-0.5">Extractos naturales energéticos.</p>
+          {/* FOTO REAL DE LOS FRUTOS */}
+          <div className="relative aspect-video w-full rounded border border-slate-700 overflow-hidden">
+            <Image
+              src="/viking/borojo_chontaduro_fruits.jpg"
+              alt="Frutos de Borojó y Chontaduro frescos"
+              fill
+              className="object-cover"
+            />
+            <div className="absolute bottom-2 left-2 bg-black/80 text-[10px] text-white px-2 py-0.5 rounded font-bold">
+              Extracto Puro de Borojó & Chontaduro
+            </div>
           </div>
 
-          <div className="bg-[#141620] border border-slate-800 p-2.5 rounded">
-            <span className="text-[#ffe600] font-black block text-[11px] uppercase">🔒 Paquete 100% Ciego</span>
-            <p className="text-[11px] text-slate-300 mt-0.5">Sobre neutro sin marcas exteriores.</p>
+          {/* 4 TARJETAS PLANAS DE INGREDIENTES */}
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="bg-[#10121a] border border-slate-800 p-2.5 rounded space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="w-5 h-5 rounded bg-amber-900/40 text-amber-400 flex items-center justify-center font-bold text-xs">🥭</span>
+                <span className="text-[8px] font-black bg-pink-500/20 text-[#ff007f] px-1.5 py-0.5 rounded">NATURAL</span>
+              </div>
+              <strong className="text-white block text-xs">Borojó</strong>
+              <p className="text-[10px] text-slate-400 leading-tight">
+                Fruto amazónico tradicionalmente asociado a la energía y el vigor.
+              </p>
+            </div>
+
+            <div className="bg-[#10121a] border border-slate-800 p-2.5 rounded space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="w-5 h-5 rounded bg-orange-900/40 text-orange-400 flex items-center justify-center font-bold text-xs">🌴</span>
+                <span className="text-[8px] font-black bg-pink-500/20 text-[#ff007f] px-1.5 py-0.5 rounded">NATURAL</span>
+              </div>
+              <strong className="text-white block text-xs">Chontaduro</strong>
+              <p className="text-[10px] text-slate-400 leading-tight">
+                Fruto del Pacífico, valorado por su aporte nutricional y resistencia.
+              </p>
+            </div>
+
+            <div className="bg-[#10121a] border border-slate-800 p-2.5 rounded space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="w-5 h-5 rounded bg-blue-900/40 text-[#00f0ff] flex items-center justify-center font-bold text-xs">⭐</span>
+                <span className="text-[8px] font-black bg-blue-500/20 text-[#00f0ff] px-1.5 py-0.5 rounded">FORTIFICADO</span>
+              </div>
+              <strong className="text-white block text-xs">Vit. C, E, Zinc</strong>
+              <p className="text-[10px] text-slate-400 leading-tight">
+                Vitaminas y minerales que aportan a tu bienestar y resistencia.
+              </p>
+            </div>
+
+            <div className="bg-[#10121a] border border-slate-800 p-2.5 rounded space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="w-5 h-5 rounded bg-emerald-900/40 text-emerald-400 flex items-center justify-center font-bold text-xs">✓</span>
+                <span className="text-[8px] font-black bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded">0 AZÚCAR</span>
+              </div>
+              <strong className="text-white block text-xs">Sin Azúcar</strong>
+              <p className="text-[10px] text-slate-400 leading-tight">
+                0 g de azúcar añadida y solo 0,5 kcal por gomita. Con colágeno y biotina.
+              </p>
+            </div>
           </div>
 
-          <div className="bg-[#141620] border border-slate-800 p-2.5 rounded">
-            <span className="text-emerald-400 font-black block text-[11px] uppercase">🇻🇪 Paga al Recibir</span>
-            <p className="text-[11px] text-slate-300 mt-0.5">Efectivo o Pago Móvil por Tealca.</p>
+          {/* TABLA NUTRICIONAL OFICIAL */}
+          <div className="border border-slate-800 rounded overflow-hidden text-[11px]">
+            <div className="bg-black text-white font-bold p-2 flex justify-between">
+              <span>Información Nutricional</span>
+              <span className="text-slate-400">por gomita (1 g)</span>
+            </div>
+            <div className="divide-y divide-slate-800 bg-[#0d0e14]">
+              <div className="flex justify-between p-1.5 text-slate-300">
+                <span>Calorías</span>
+                <strong className="text-pink-400">0,5 kcal</strong>
+              </div>
+              <div className="flex justify-between p-1.5 text-slate-300">
+                <span>Azúcares añadidos</span>
+                <strong className="text-white">0 g</strong>
+              </div>
+              <div className="flex justify-between p-1.5 text-slate-300">
+                <span>Vitamina C</span>
+                <strong className="text-white">22 mg</strong>
+              </div>
+              <div className="flex justify-between p-1.5 text-slate-300">
+                <span>Vitamina E</span>
+                <strong className="text-white">1,9 mg</strong>
+              </div>
+              <div className="flex justify-between p-1.5 text-slate-300">
+                <span>Colágeno hidrolizado</span>
+                <strong className="text-pink-400">4,45 mg</strong>
+              </div>
+              <div className="flex justify-between p-1.5 text-slate-300">
+                <span>Borojó</span>
+                <strong className="text-white">1,25 mg</strong>
+              </div>
+              <div className="flex justify-between p-1.5 text-slate-300">
+                <span>Chontaduro</span>
+                <strong className="text-white">0,35 mg</strong>
+              </div>
+              <div className="flex justify-between p-1.5 text-slate-300">
+                <span>Zinc</span>
+                <strong className="text-white">0,08 mg</strong>
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
 
         {/* 5. SELECTOR DE PRESENTACIONES Y PRECIOS REDONDOS CON ENVÍO GRATIS */}
         <section className="bg-[#141722] border-2 border-slate-700 rounded-lg p-3.5 md:p-4 space-y-3">
@@ -441,12 +540,77 @@ export default function VikingLanding() {
               <span>→</span>
             </button>
             <p className="text-center text-[10px] text-slate-400 mt-1.5">
-              🛡️ No pagas nada por adelantado • Pagas en efectivo o Pago Móvil en mano
+              🛡️ No pagas nada por adelantado • Pago en la entrega por Tealca
             </p>
           </div>
         </section>
 
-        {/* 6. GUÍA DE USO Y PREGUNTAS CLAVE */}
+        {/* 6. SECCIÓN EXACTA: COMPRA SEGURA - PAGO EN LA ENTREGA */}
+        <section className="bg-[#141722] border border-slate-800 rounded-lg p-3.5 space-y-3 text-xs">
+          <div className="text-center space-y-1">
+            <span className="inline-block bg-pink-500/20 text-[#ff007f] text-[9px] font-black uppercase px-2 py-0.5 rounded">
+              Compra Segura
+            </span>
+            <h2 className="text-base font-black text-white">
+              Pago en la entrega
+            </h2>
+          </div>
+
+          {/* LOS 3 PASOS NUMERADOS */}
+          <div className="space-y-2.5 pt-1">
+            <div className="flex items-start gap-3">
+              <span className="w-6 h-6 rounded-full border-2 border-[#ff007f] text-[#ff007f] font-black flex items-center justify-center shrink-0 text-xs">
+                1
+              </span>
+              <div>
+                <strong className="text-white block text-xs">Elige tu combo</strong>
+                <p className="text-[11px] text-slate-300">1 par ($21), 3 pares ($25) o el pote de 30 ($45).</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <span className="w-6 h-6 rounded-full border-2 border-[#ff007f] text-[#ff007f] font-black flex items-center justify-center shrink-0 text-xs">
+                2
+              </span>
+              <div>
+                <strong className="text-white block text-xs">Llena tus datos</strong>
+                <p className="text-[11px] text-slate-300">Nombre, WhatsApp y agencia Tealca o dirección. Un minuto.</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <span className="w-6 h-6 rounded-full border-2 border-[#ff007f] text-[#ff007f] font-black flex items-center justify-center shrink-0 text-xs">
+                3
+              </span>
+              <div>
+                <strong className="text-white block text-xs">Recibe y pago en la entrega</strong>
+                <p className="text-[11px] text-slate-300">Llega discreto en 24 a 72 horas hábiles por Tealca. Pagas en efectivo o Pago Móvil.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* 4 BADGES DE CONFIANZA */}
+          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800">
+            <div className="bg-[#10121a] p-2 rounded border border-slate-800 flex items-center gap-2">
+              <span className="text-sm">💵</span>
+              <span className="text-[10px] font-bold text-white">Pago en la entrega</span>
+            </div>
+            <div className="bg-[#10121a] p-2 rounded border border-slate-800 flex items-center gap-2">
+              <span className="text-sm">🚚</span>
+              <span className="text-[10px] font-bold text-white">Envío gratis y discreto</span>
+            </div>
+            <div className="bg-[#10121a] p-2 rounded border border-slate-800 flex items-center gap-2">
+              <span className="text-sm">🛡️</span>
+              <span className="text-[10px] font-bold text-white">Garantía de entrega</span>
+            </div>
+            <div className="bg-[#10121a] p-2 rounded border border-slate-800 flex items-center gap-2">
+              <span className="text-sm">💬</span>
+              <span className="text-[10px] font-bold text-white">Soporte WhatsApp</span>
+            </div>
+          </div>
+        </section>
+
+        {/* 7. GUÍA DE USO Y PREGUNTAS FRECUENTES */}
         <section className="bg-[#141722] border border-slate-800 rounded-lg p-3.5 space-y-2.5 text-xs">
           <h2 className="font-black text-white text-sm uppercase">Preguntas Frecuentes</h2>
 
@@ -466,15 +630,15 @@ export default function VikingLanding() {
             </div>
 
             <div>
-              <strong className="text-emerald-400 block text-xs">¿Cómo se paga al recibir?</strong>
+              <strong className="text-emerald-400 block text-xs">¿Cómo es el pago en la entrega?</strong>
               <p className="text-slate-300 text-[11px] mt-0.5">
-                Pagas al retirar en Tealca: dólares en efectivo o Pago Móvil a tasa oficial.
+                Pagas al momento de la entrega por Tealca: dólares en efectivo o Pago Móvil a tasa oficial.
               </p>
             </div>
           </div>
         </section>
 
-        {/* 7. FOOTER */}
+        {/* 8. FOOTER */}
         <footer className="border-t border-slate-800 pt-4 text-center text-[11px] text-slate-500 space-y-2">
           <p>© {new Date().getFullYear()} Gummies Viking Venezuela • Borojó & Chontaduro</p>
           <div className="flex justify-center gap-3 text-slate-400">
@@ -493,7 +657,7 @@ export default function VikingLanding() {
         </footer>
       </main>
 
-      {/* 8. STICKY DOCK EN MÓVIL (PLANO Y DIRECTO) */}
+      {/* 9. STICKY DOCK EN MÓVIL (PLANO Y DIRECTO) */}
       {showStickyBar && (
         <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#13151c] border-t-2 border-slate-700 p-2.5 md:hidden">
           <div className="flex items-center justify-between gap-2.5 max-w-md mx-auto">
@@ -505,20 +669,20 @@ export default function VikingLanding() {
                 {money(selectedPack.price)}
               </span>
               <span className="text-[9px] text-emerald-400 font-bold block">
-                Envío Gratis
+                Envío Gratis • Pago en la Entrega
               </span>
             </div>
             <button
               onClick={() => openCheckout()}
               className="flex-1 py-3 bg-[#ff007f] hover:bg-[#e0006f] text-white font-black text-xs uppercase tracking-wider rounded border border-black cursor-pointer text-center"
             >
-              Pedir Ahora · Paga en Mano →
+              Pedir · Pago en la Entrega →
             </button>
           </div>
         </div>
       )}
 
-      {/* 9. MODAL DE CHECKOUT PLANO */}
+      {/* 10. MODAL DE CHECKOUT PLANO */}
       {isCheckoutOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/85">
           <div className="bg-[#141722] w-full max-w-md rounded-lg border-2 border-slate-600 p-4 space-y-3 relative max-h-[92vh] overflow-y-auto">
@@ -531,7 +695,7 @@ export default function VikingLanding() {
 
             <div className="border-b border-slate-800 pb-2">
               <span className="text-[9px] font-black text-[#00f0ff] uppercase tracking-widest block">
-                Pago Contra Entrega Tealca
+                Pago en la Entrega por Tealca
               </span>
               <h3 className="text-base font-black text-white">
                 Datos de Entrega
@@ -637,7 +801,7 @@ export default function VikingLanding() {
         </div>
       )}
 
-      {/* 10. POP-UP DE CORTESÍA A LOS 5 SEGUNDOS (OFERTA 3 PARES POR $25) */}
+      {/* 11. POP-UP DE CORTESÍA A LOS 5 SEGUNDOS (OFERTA 3 PARES POR $25) */}
       {showDiscountModal && !isCheckoutOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85">
           <div className="bg-[#141722] w-full max-w-sm rounded-lg border-2 border-[#ff007f] p-4 space-y-3 relative shadow-[4px_4px_0px_#000]">
@@ -656,14 +820,14 @@ export default function VikingLanding() {
                 ¡Lleva 3 Pares por solo $25 y Envío Gratis!
               </h3>
               <p className="text-[11px] text-slate-300">
-                Por solo <strong>$4 más que 1 par</strong> ($21), te llevas 3 pares completos (6 gomitas masticables).
+                Por solo <strong>$4 más que 1 par</strong> ($21), te llevas 3 pares completos (6 gomitas masticables). Pago en la entrega por Tealca.
               </p>
             </div>
 
             <div className="bg-[#0f1118] p-2.5 rounded border border-slate-800 flex justify-between items-center text-xs">
               <div>
                 <strong className="text-white block">Combo 3 Pares (6 Gomitas)</strong>
-                <span className="text-emerald-400 font-bold text-[10px]">Envío Gratis por Tealca</span>
+                <span className="text-emerald-400 font-bold text-[10px]">Envío Gratis • Pago en la Entrega</span>
               </div>
               <span className="text-lg font-black text-white">$25</span>
             </div>
@@ -681,7 +845,7 @@ export default function VikingLanding() {
         </div>
       )}
 
-      {/* 11. MODALES LEGALES */}
+      {/* 12. MODALES LEGALES */}
       {activeLegalModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85">
           <div className="bg-[#141722] w-full max-w-md rounded-lg p-4 border border-slate-700 space-y-2.5 text-xs text-slate-300 max-h-[85vh] overflow-y-auto">
@@ -703,7 +867,7 @@ export default function VikingLanding() {
             )}
             {activeLegalModal === "shipping" && (
               <p>
-                Despacho nacional por Tealca. Pagas al recibir en efectivo o Pago Móvil. Todos los paquetes incluyen flete gratis.
+                Despacho nacional por Tealca. Pago en la entrega en efectivo o Pago Móvil. Todos los paquetes incluyen flete gratis.
               </p>
             )}
             {activeLegalModal === "guide" && (
