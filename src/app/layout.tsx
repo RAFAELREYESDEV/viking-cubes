@@ -3,23 +3,23 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Gummies Viking Borojó & Chontaduro | Gomitas Vigorizantes Pareja",
-  description: "Gomitas masticables de gelatina con extractos naturales de Borojó y Chontaduro. Empaque discreto y pago contra entrega por Tealca en toda Venezuela.",
+  title: "Gummies Viking Borojó & Chontaduro | Tienda Oficial Venezuela",
+  description: "Gomitas masticables de gelatina con extractos naturales de Borojó y Chontaduro. Envío gratis y pago en la entrega por Tealca en toda Venezuela.",
   applicationName: "Gummies Viking Venezuela",
   robots: { index: true, follow: true },
   openGraph: {
     title: "Gummies Viking Borojó & Chontaduro | Edición Parejas",
-    description: "Enciende la química de tus noches. Paga al recibir por Tealca en toda Venezuela.",
+    description: "Enciende la química y vitalidad en pareja. Paga en la entrega por Tealca en toda Venezuela.",
     locale: "es_VE",
     type: "website",
   },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID || "2045055106181681";
+  const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID || "2395875734496328";
 
   return (
-    <html lang="es-VE">
+    <html lang="es-VE" className="scroll-smooth">
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -36,7 +36,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           />
         </noscript>
       </head>
-      <body className="antialiased bg-[#090b0e] text-slate-100 selection:bg-[#ff007f] selection:text-white">
+      <body className="antialiased bg-[#fafafa] text-neutral-900 selection:bg-neutral-900 selection:text-white font-sans">
         {children}
       </body>
     </html>

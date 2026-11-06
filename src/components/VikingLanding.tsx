@@ -35,14 +35,14 @@ const VENEZUELA_STATES = [
 
 const GALLERY_IMAGES = [
   {
+    src: "/viking/viking_pouch_front.jpg",
+    alt: "Gummies Viking - Sobre Individual de 2 Gomitas",
+    tag: "SOBRES INDIVIDUALES"
+  },
+  {
     src: "/viking/viking_bottle_splash.jpg",
     alt: "Gummies Viking Borojó y Chontaduro - Pote 30 Gomitas",
     tag: "POTE 30 GOMITAS"
-  },
-  {
-    src: "/viking/viking_pouch_front.jpg",
-    alt: "Gummies Viking Sobre Individual 2 Gomitas",
-    tag: "SOBRES INDIVIDUALES"
   },
   {
     src: "/viking/viking_pouch_with_gummies.jpg",
@@ -51,7 +51,7 @@ const GALLERY_IMAGES = [
   },
   {
     src: "/viking/borojo_chontaduro_fruits.jpg",
-    alt: "Ingredientes Naturales: Borojó y Chontaduro",
+    alt: "Superfrutas Naturales: Borojó y Chontaduro",
     tag: "BOROJÓ & CHONTADURO"
   },
   {
@@ -61,7 +61,7 @@ const GALLERY_IMAGES = [
   },
   {
     src: "/viking/viking_pouch_real_table.jpg",
-    alt: "Textura Real en Mano",
+    alt: "Gummies Viking Foto Real en Mano",
     tag: "FOTO REAL EN MANO"
   }
 ];
@@ -83,16 +83,12 @@ export default function VikingLanding() {
   });
   const [formStatus, setFormStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
-
-  // Pop-up 5s
-  const [showDiscountModal, setShowDiscountModal] = useState(false);
-  const [hasShownDiscountModal, setHasShownDiscountModal] = useState(false);
   const [activeLegalModal, setActiveLegalModal] = useState<"privacy" | "shipping" | "guide" | null>(null);
 
   // Touch Swipe para móvil
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
-  const ctaButtonRef = useRef<HTMLDivElement>(null);
+  const heroCtaRef = useRef<HTMLDivElement>(null);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.targetTouches[0].clientX;
@@ -111,11 +107,11 @@ export default function VikingLanding() {
     touchEndX.current = 0;
   };
 
-  // Sticky Bar inteligente en móvil
+  // Sticky Bar inteligente en scroll
   useEffect(() => {
     const handleScroll = () => {
-      if (!ctaButtonRef.current) return;
-      const rect = ctaButtonRef.current.getBoundingClientRect();
+      if (!heroCtaRef.current) return;
+      const rect = heroCtaRef.current.getBoundingClientRect();
       if (rect.bottom < 0) {
         setShowStickyBar(true);
       } else {
@@ -126,91 +122,87 @@ export default function VikingLanding() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Meta Pixel ViewContent
+  // Pixel ViewContent
   useEffect(() => {
     if (typeof window !== "undefined" && (window as unknown as { fbq?: (...args: unknown[]) => void }).fbq) {
       (window as unknown as { fbq: (...args: unknown[]) => void }).fbq("track", "ViewContent", {
-        content_name: "Gummies Viking Borojó & Chontaduro",
-        content_category: "Vitalidad y Pareja",
-        content_ids: ["gummies_viking"],
+        content_name: "Gummies Viking Borojó y Chontaduro",
+        content_category: "Suplementos de Vitalidad",
         value: 25,
         currency: "USD"
       });
     }
   }, []);
 
-  // Pop-up a los 5 segundos
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!hasShownDiscountModal && !isCheckoutOpen) {
-        setShowDiscountModal(true);
-        setHasShownDiscountModal(true);
-      }
-    }, 5000);
-
-    return () => clearTimeout(timer);
-  }, [hasShownDiscountModal, isCheckoutOpen]);
-
-  const openCheckout = (pack = selectedPack) => {
-    setSelectedPack(pack);
+  const openCheckout = (pack?: ProductBundle) => {
+    if (pack) setSelectedPack(pack);
     setIsCheckoutOpen(true);
+
     if (typeof window !== "undefined" && (window as unknown as { fbq?: (...args: unknown[]) => void }).fbq) {
+      const targetPack = pack || selectedPack;
       (window as unknown as { fbq: (...args: unknown[]) => void }).fbq("track", "InitiateCheckout", {
-        content_name: pack.name,
-        content_ids: [pack.id],
-        value: pack.price,
+        content_name: targetPack.name,
+        content_ids: [targetPack.id],
+        value: targetPack.price,
         currency: "USD"
       });
     }
   };
 
-  const handleFormSubmit = async (e: React.FormEvent) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.fullName.trim() || !formData.phone.trim() || !formData.cityAddress.trim()) {
-      setErrorMessage("Por favor completa tu nombre, teléfono y dirección o agencia Tealca.");
+      setErrorMessage("Por favor completa tu nombre, teléfono y dirección.");
       return;
     }
-
-    setFormStatus("submitting");
     setErrorMessage("");
+    setFormStatus("submitting");
+
+    const eventId = `ord-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
     try {
-      const eventId = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `order_${Date.now()}`;
+      await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: formData.fullName.trim(),
+          phone: formData.phone.trim(),
+          state: formData.state,
+          address: formData.cityAddress.trim(),
+          bundle: selectedPack.id,
+          paymentMethod: formData.paymentMethod,
+          deliveryNotes: formData.notes.trim(),
+          eventId
+        })
+      });
 
-      const paymentLabel =
-        formData.paymentMethod === "pagomovil"
-          ? "Pago Móvil (Bs a tasa oficial)"
-          : formData.paymentMethod === "binance_usdt"
-          ? "Binance USDT"
-          : "Dólares en Efectivo ($)";
-
-      const cleanState = formData.state.split("(")[0].trim();
       const messageLines = [
-        "*SOLICITUD DE PEDIDO - GUMMIES VIKING VENEZUELA*",
-        "------------------------------------",
-        "*PRESENTACIÓN SELECCIONADA:*",
-        `- Opción: ${selectedPack.name}`,
-        `- Presentación: ${selectedPack.unitLabel}`,
-        `- Contenido: ${selectedPack.gummies} Gomitas Masticables`,
-        `- Total a Pagar: $${selectedPack.price} USD`,
-        `- Modalidad: PAGO EN LA ENTREGA POR TEALCA (ENVÍO GRATIS)`,
-        "",
-        "*DATOS PARA EL ENVÍO PRIVADO:*",
-        `- Cliente: ${formData.fullName.trim()}`,
-        `- Teléfono: ${formData.phone.trim()}`,
-        `- Estado: ${cleanState}`,
-        `- Dirección o Agencia Tealca: ${formData.cityAddress.trim()}`,
-        `- Método de Pago: ${paymentLabel}`,
-        ...(formData.notes?.trim() ? [`- Nota: ${formData.notes.trim()}`] : []),
-        "",
-        "------------------------------------",
-        "*MODALIDAD:* PAGO EN LA ENTREGA",
-        "Empaque 100% neutro y sellado (sin marcas exteriores).",
-        "",
+        "👑 *NUEVO PEDIDO - GUMMIES VIKING VENEZUELA*",
+        "-----------------------------------",
+        `*Presentación:* ${selectedPack.orderName}`,
+        `*Total a pagar:* $${selectedPack.price} (PAGO EN LA ENTREGA)`,
+        `*Envío:* 100% GRATIS POR TEALCA`,
+        "-----------------------------------",
+        `*Cliente:* ${formData.fullName.trim()}`,
+        `*Teléfono:* ${formData.phone.trim()}`,
+        `*Estado:* ${formData.state}`,
+        `*Dirección / Agencia:* ${formData.cityAddress.trim()}`,
+        `*Método de pago:* ${
+          formData.paymentMethod === "efectivo_divisas"
+            ? "Efectivo en Divisas al recibir"
+            : "Pago Móvil (tasa del día) al recibir"
+        }`,
+        formData.notes.trim() ? `*Notas adicionales:* ${formData.notes.trim()}` : "",
+        "-----------------------------------",
         "Hola, acabo de llenar mis datos en la página web para pedir mis Gummies Viking. ¿Me confirman para coordinar el despacho por Tealca?"
       ];
 
-      const message = messageLines.join("\n");
+      const message = messageLines.filter(Boolean).join("\n");
       const cleanPhone = WHATSAPP_NUMBER.replace(/\D/g, "");
       const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
 
@@ -231,60 +223,96 @@ export default function VikingLanding() {
       setFormStatus("success");
       setTimeout(() => {
         window.location.href = waUrl;
-      }, 300);
+      }, 700);
     } catch {
-      setErrorMessage("Ocurrió un error. Escríbenos directamente al WhatsApp.");
+      setErrorMessage("Ocurrió un error al procesar tu solicitud. Intenta de nuevo o contáctanos por WhatsApp.");
       setFormStatus("error");
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#0d0e12] text-slate-100 font-sans selection:bg-[#ff007f] selection:text-white pb-28 md:pb-12">
-      {/* 1. BARRA SUPERIOR PLANA Y COLORIDA */}
-      <div className="bg-[#ffe600] text-black font-black text-[11px] md:text-xs py-2 px-3 text-center uppercase tracking-wider flex items-center justify-center gap-1.5 border-b-2 border-black">
-        <span>⚡</span>
-        <span>ENVÍO GRATIS A TODA VENEZUELA POR TEALCA • PAGO EN LA ENTREGA</span>
-        <span>🇻🇪</span>
+    <div className="min-h-screen bg-[#fafafa] text-neutral-900 font-sans">
+      {/* 1. TOP ANNOUNCEMENT BAR (WIX STYLE) */}
+      <div className="bg-neutral-900 text-neutral-100 text-[11px] md:text-xs py-2 px-4 text-center font-semibold tracking-wider uppercase">
+        <span>🚚 Envío Gratis a toda Venezuela • Pago en la Entrega (Tealca)</span>
       </div>
 
-      {/* 2. HEADER PLANO MINIMALISTA */}
-      <header className="bg-[#13151c] border-b border-slate-800 px-4 py-3 sticky top-0 z-40">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="w-7 h-7 bg-[#ff007f] text-white flex items-center justify-center font-black rounded text-sm">
-              👑
-            </span>
-            <span className="font-black text-base md:text-lg tracking-wide text-white uppercase">
+      {/* 2. HEADER MINIMALISTA (WIX 3304 WIREFRAME) */}
+      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-neutral-200">
+        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="hidden md:flex items-center gap-6 text-xs font-semibold text-neutral-600 uppercase tracking-wider">
+            <a href="#presentaciones" className="hover:text-black transition-colors">Presentaciones</a>
+            <a href="#formula" className="hover:text-black transition-colors">Fórmula</a>
+            <a href="#como-funciona" className="hover:text-black transition-colors">Cómo Comprar</a>
+          </div>
+
+          {/* Logo Tipográfico Editorial */}
+          <div className="flex flex-col items-center md:items-start">
+            <span className="text-xl md:text-2xl font-black tracking-tight text-neutral-950 uppercase">
               Gummies Viking
             </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
-              Pago en la Entrega
+            <span className="text-[9px] font-bold tracking-widest text-neutral-500 uppercase -mt-0.5">
+              Borojó & Chontaduro
             </span>
+          </div>
+
+          <div>
+            <button
+              onClick={() => openCheckout()}
+              className="bg-neutral-950 hover:bg-neutral-800 text-white text-xs font-bold px-4 py-2 rounded transition-all"
+            >
+              Pedir Ahora
+            </button>
           </div>
         </div>
       </header>
 
-      {/* 3. CONTENIDO PRINCIPAL MÓVIL DIRECTO */}
-      <main className="max-w-xl mx-auto px-4 pt-4 space-y-5">
-        {/* TITULAR Y SUBTÍTULO DIRECTOS */}
-        <div className="space-y-1.5">
-          <div className="inline-block bg-[#00f0ff] text-black text-[10px] font-black uppercase px-2 py-0.5 rounded tracking-wide">
-            Borojó + Chontaduro Natural
-          </div>
-          <h1 className="text-xl md:text-2xl font-black text-white leading-tight uppercase tracking-tight">
-            Gomitas Vigorizantes para Parejas
+      {/* 3. HERO SECTION (EDITORIAL & CLEAN) */}
+      <section className="max-w-5xl mx-auto px-4 pt-8 md:pt-14 pb-10">
+        <div className="text-center max-w-2xl mx-auto space-y-4">
+          <span className="inline-block text-[10px] md:text-xs font-bold tracking-widest uppercase bg-neutral-100 border border-neutral-300 text-neutral-700 px-3 py-1 rounded-full">
+            Suplemento Natural en Gomitas • Edición Parejas
+          </span>
+
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-neutral-950 leading-[1.12]">
+            Recupera tu energía. <br />
+            Disfruta tu tiempo en pareja.
           </h1>
-          <p className="text-xs text-slate-300 leading-relaxed">
-            Energía, vitalidad y complicidad activa. Delicioso sabor frutal, textura masticable y efecto rápido en 30 minutos.
+
+          <p className="text-sm md:text-base text-neutral-600 leading-relaxed font-normal">
+            Gomitas masticables fortificadas con extracto de <strong>Borojó, Chontaduro, Colágeno y Vitaminas C y E</strong>. 
+            Dile adiós a la fatiga del trabajo y enciende la vitalidad diaria.
           </p>
+
+          {/* Banner de Obsequio Congruente con los Videos */}
+          <div className="bg-amber-50 border border-amber-200 text-amber-950 text-xs p-3 rounded-lg flex items-center justify-center gap-2 max-w-lg mx-auto text-left">
+            <span className="text-xl shrink-0">🎁</span>
+            <p className="text-[12px] leading-tight">
+              <strong>Regalo Especial Hoy:</strong> Recibe de obsequio la <strong>Guía Digital: Hábitos de Vitalidad & Bienestar en Pareja</strong> con cualquier presentación.
+            </p>
+          </div>
+
+          {/* Botones de Acción */}
+          <div ref={heroCtaRef} className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <a
+              href="#presentaciones"
+              className="w-full sm:w-auto bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-sm px-7 py-3 rounded transition-all text-center shadow-sm"
+            >
+              Ver Presentaciones y Precios
+            </a>
+            <button
+              onClick={() => openCheckout(PRODUCT_BUNDLES[0])}
+              className="w-full sm:w-auto bg-white hover:bg-neutral-100 text-neutral-900 border border-neutral-300 font-bold text-sm px-6 py-3 rounded transition-all text-center"
+            >
+              Pedir con Pago en la Entrega
+            </button>
+          </div>
         </div>
 
-        {/* CARRUSEL PLANO DE FOTOS */}
-        <div className="space-y-2.5">
+        {/* GALERÍA / CAROUSEL DE FOTOS REALES */}
+        <div className="mt-8 max-w-lg mx-auto">
           <div
-            className="relative aspect-square w-full bg-[#181a24] border-2 border-slate-800 rounded-lg overflow-hidden"
+            className="relative aspect-square w-full rounded-xl overflow-hidden border border-neutral-200 bg-neutral-100 select-none shadow-sm"
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
@@ -293,40 +321,39 @@ export default function VikingLanding() {
               src={GALLERY_IMAGES[currentSlide].src}
               alt={GALLERY_IMAGES[currentSlide].alt}
               fill
-              className="object-cover"
               priority
-              sizes="(max-width: 640px) 100vw, 550px"
+              className="object-cover"
             />
-            {/* Tag plano */}
-            <div className="absolute top-2.5 left-2.5 bg-black text-[#00f0ff] border border-[#00f0ff] text-[9px] font-black uppercase px-2 py-0.5 rounded">
+            {/* Tag de imagen */}
+            <div className="absolute top-3 left-3 bg-neutral-950/80 backdrop-blur-sm text-white text-[10px] font-black uppercase px-2.5 py-1 rounded">
               {GALLERY_IMAGES[currentSlide].tag}
             </div>
 
-            {/* Flechas planas */}
+            {/* Flechas de navegación */}
             <button
               onClick={() => setCurrentSlide((prev) => (prev - 1 + GALLERY_IMAGES.length) % GALLERY_IMAGES.length)}
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/80 text-white font-bold flex items-center justify-center border border-white/20 rounded cursor-pointer"
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-neutral-800 flex items-center justify-center text-sm font-black shadow"
               aria-label="Anterior"
             >
               ‹
             </button>
             <button
               onClick={() => setCurrentSlide((prev) => (prev + 1) % GALLERY_IMAGES.length)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/80 text-white font-bold flex items-center justify-center border border-white/20 rounded cursor-pointer"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-neutral-800 flex items-center justify-center text-sm font-black shadow"
               aria-label="Siguiente"
             >
               ›
             </button>
           </div>
 
-          {/* Miniaturas planas */}
-          <div className="flex gap-2 overflow-x-auto pb-1">
+          {/* Miniaturas */}
+          <div className="flex gap-2 mt-3 overflow-x-auto pb-1 justify-center">
             {GALLERY_IMAGES.map((img, idx) => (
               <button
                 key={idx}
                 onClick={() => setCurrentSlide(idx)}
-                className={`relative w-14 h-14 shrink-0 rounded border-2 transition-all cursor-pointer ${
-                  currentSlide === idx ? "border-[#ff007f] opacity-100" : "border-slate-800 opacity-50"
+                className={`relative w-14 h-14 rounded-lg overflow-hidden border-2 shrink-0 transition-all ${
+                  currentSlide === idx ? "border-neutral-950 scale-105" : "border-neutral-200 opacity-60"
                 }`}
               >
                 <Image src={img.src} alt={img.alt} fill className="object-cover" />
@@ -334,547 +361,561 @@ export default function VikingLanding() {
             ))}
           </div>
         </div>
+      </section>
 
-        {/* 4. SECCIÓN EXACTA: QUÉ LLEVAS POR DENTRO, SIN LETRA CHICA */}
-        <section className="bg-[#141722] border-2 border-slate-700 rounded-lg p-3.5 md:p-4 space-y-3">
-          <div className="space-y-1">
-            <span className="inline-block bg-pink-500/20 text-[#ff007f] text-[9px] font-black uppercase px-2 py-0.5 rounded tracking-wide">
-              Fórmula y Respaldo
+      {/* 4. SECCIÓN "MÁS VENDIDOS" / CATÁLOGO (WIX STUDIO 3304 STYLE) */}
+      <section id="presentaciones" className="bg-white border-y border-neutral-200 py-12 px-4">
+        <div className="max-w-5xl mx-auto space-y-8">
+          <div className="text-center max-w-xl mx-auto space-y-2">
+            <span className="text-[11px] font-black uppercase tracking-widest text-neutral-500">
+              Catálogo Oficial
             </span>
-            <h2 className="text-base md:text-lg font-black text-white leading-tight">
-              Qué llevas por dentro, <span className="text-[#ff007f]">sin letra chica</span>
+            <h2 className="text-2xl md:text-3xl font-black text-neutral-950 tracking-tight">
+              Más Vendidos
             </h2>
-            <p className="text-[11px] text-slate-300">
-              Gomitas fortificadas con borojó, chontaduro, vitaminas y minerales. Fabricante y registro verificable.
+            <p className="text-xs md:text-sm text-neutral-600">
+              Todas las presentaciones incluyen <strong>Envío Gratis por Tealca</strong> y <strong>Pago en la entrega</strong>.
             </p>
           </div>
 
-          {/* FOTO REAL DE LOS FRUTOS */}
-          <div className="relative aspect-video w-full rounded border border-slate-700 overflow-hidden">
+          {/* GRID DE PRODUCTOS */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            {PRODUCT_BUNDLES.map((pack) => {
+              const isSelected = selectedPack.id === pack.id;
+              const isRecommended = pack.recommended;
+
+              return (
+                <div
+                  key={pack.id}
+                  className={`relative rounded-xl border flex flex-col justify-between p-5 bg-neutral-50/50 transition-all ${
+                    isRecommended
+                      ? "border-neutral-950 shadow-md ring-1 ring-neutral-950 bg-white"
+                      : "border-neutral-200 hover:border-neutral-400"
+                  }`}
+                >
+                  {/* Badge */}
+                  <div className="flex items-center justify-between mb-3">
+                    <span
+                      className={`text-[9px] font-black uppercase px-2.5 py-1 rounded tracking-wide ${
+                        isRecommended
+                          ? "bg-neutral-950 text-white"
+                          : pack.id === "pack_frasco_30"
+                          ? "bg-amber-100 text-amber-900 border border-amber-300"
+                          : "bg-neutral-200 text-neutral-800"
+                      }`}
+                    >
+                      {pack.badge}
+                    </span>
+                    <span className="text-[10px] font-bold text-emerald-700 uppercase bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
+                      Envío Gratis
+                    </span>
+                  </div>
+
+                  {/* Imagen y Detalles */}
+                  <div className="space-y-3">
+                    <div className="relative aspect-square w-full rounded-lg overflow-hidden bg-neutral-100 border border-neutral-200">
+                      <Image
+                        src={
+                          pack.id === "pack_frasco_30"
+                            ? "/viking/viking_bottle_splash.jpg"
+                            : pack.id === "pack_3_pares"
+                            ? "/viking/viking_pouch_with_gummies.jpg"
+                            : "/viking/viking_pouch_front.jpg"
+                        }
+                        alt={pack.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+
+                    <div>
+                      <h3 className="font-black text-base text-neutral-950">
+                        {pack.name}
+                      </h3>
+                      <p className="text-xs text-neutral-600 font-medium">
+                        {pack.unitLabel} • <span className="text-neutral-500">{pack.perDose}</span>
+                      </p>
+                      <p className="text-[11px] font-bold text-rose-600 mt-1">
+                        {pack.savings}
+                      </p>
+                    </div>
+
+                    <ul className="text-xs text-neutral-600 space-y-1.5 pt-2 border-t border-neutral-200">
+                      <li className="flex items-center gap-1.5">
+                        <span className="text-emerald-600 font-bold">✓</span> Borojó y Chontaduro puros
+                      </li>
+                      <li className="flex items-center gap-1.5">
+                        <span className="text-emerald-600 font-bold">✓</span> 0% Azúcar añadida
+                      </li>
+                      <li className="flex items-center gap-1.5">
+                        <span className="text-emerald-600 font-bold">✓</span> Pago en la entrega con Tealca
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* Precios y Botón */}
+                  <div className="pt-5 mt-4 border-t border-neutral-200 space-y-3">
+                    <div className="flex items-baseline justify-between">
+                      <span className="text-xs text-neutral-400 line-through">
+                        ${pack.regularPrice}
+                      </span>
+                      <div className="text-right">
+                        <span className="text-2xl font-black text-neutral-950">
+                          ${pack.price}
+                        </span>
+                        <span className="text-[10px] text-neutral-500 font-semibold block">
+                          USD / Pago al recibir
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => openCheckout(pack)}
+                      className={`w-full py-2.5 px-4 rounded text-xs font-black uppercase tracking-wider transition-all ${
+                        isRecommended
+                          ? "bg-neutral-950 hover:bg-neutral-800 text-white shadow"
+                          : "bg-neutral-100 hover:bg-neutral-200 text-neutral-900 border border-neutral-300"
+                      }`}
+                    >
+                      Pedir este Combo
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* 5. SECCIÓN FÓRMULA Y RESPALDO (EDITORIAL MINIMALISTA) */}
+      <section id="formula" className="py-12 px-4 max-w-5xl mx-auto space-y-8">
+        <div className="text-center max-w-xl mx-auto space-y-2">
+          <span className="text-[11px] font-black uppercase tracking-widest text-neutral-500">
+            Composición & Respaldo
+          </span>
+          <h2 className="text-2xl md:text-3xl font-black text-neutral-950 tracking-tight">
+            Qué llevas por dentro, sin letra chica
+          </h2>
+          <p className="text-xs md:text-sm text-neutral-600">
+            Formulado a base de frutas energéticas tradicionales, colágeno y vitaminas esenciales.
+          </p>
+        </div>
+
+        {/* FOTO REAL DE LAS FRUTAS + 4 TARJETAS EDITORIALES */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+          <div className="relative aspect-video md:aspect-square w-full rounded-xl overflow-hidden border border-neutral-200 bg-neutral-100">
             <Image
               src="/viking/borojo_chontaduro_fruits.jpg"
               alt="Frutos de Borojó y Chontaduro frescos"
               fill
               className="object-cover"
             />
-            <div className="absolute bottom-2 left-2 bg-black/80 text-[10px] text-white px-2 py-0.5 rounded font-bold">
+            <div className="absolute bottom-3 left-3 bg-neutral-950/80 backdrop-blur-sm text-white text-xs px-3 py-1 rounded font-bold">
               Extracto Puro de Borojó & Chontaduro
             </div>
           </div>
 
-          {/* 4 TARJETAS PLANAS DE INGREDIENTES */}
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="bg-[#10121a] border border-slate-800 p-2.5 rounded space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="w-5 h-5 rounded bg-amber-900/40 text-amber-400 flex items-center justify-center font-bold text-xs">🥭</span>
-                <span className="text-[8px] font-black bg-pink-500/20 text-[#ff007f] px-1.5 py-0.5 rounded">NATURAL</span>
-              </div>
-              <strong className="text-white block text-xs">Borojó</strong>
-              <p className="text-[10px] text-slate-400 leading-tight">
-                Fruto amazónico tradicionalmente asociado a la energía y el vigor.
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div className="bg-white border border-neutral-200 p-4 rounded-xl space-y-1">
+              <span className="text-xl">🥭</span>
+              <strong className="text-neutral-950 block text-sm">Borojó</strong>
+              <p className="text-neutral-600 text-[11px] leading-tight">
+                Superfruta amazónica asociada ancestralmente al vigor y la energía natural.
               </p>
             </div>
 
-            <div className="bg-[#10121a] border border-slate-800 p-2.5 rounded space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="w-5 h-5 rounded bg-orange-900/40 text-orange-400 flex items-center justify-center font-bold text-xs">🌴</span>
-                <span className="text-[8px] font-black bg-pink-500/20 text-[#ff007f] px-1.5 py-0.5 rounded">NATURAL</span>
-              </div>
-              <strong className="text-white block text-xs">Chontaduro</strong>
-              <p className="text-[10px] text-slate-400 leading-tight">
-                Fruto del Pacífico, valorado por su aporte nutricional y resistencia.
+            <div className="bg-white border border-neutral-200 p-4 rounded-xl space-y-1">
+              <span className="text-xl">🌴</span>
+              <strong className="text-neutral-950 block text-sm">Chontaduro</strong>
+              <p className="text-neutral-600 text-[11px] leading-tight">
+                Fruto del Pacífico rico en ácidos grasos saludables y nutrientes esenciales.
               </p>
             </div>
 
-            <div className="bg-[#10121a] border border-slate-800 p-2.5 rounded space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="w-5 h-5 rounded bg-blue-900/40 text-[#00f0ff] flex items-center justify-center font-bold text-xs">⭐</span>
-                <span className="text-[8px] font-black bg-blue-500/20 text-[#00f0ff] px-1.5 py-0.5 rounded">FORTIFICADO</span>
-              </div>
-              <strong className="text-white block text-xs">Vit. C, E, Zinc</strong>
-              <p className="text-[10px] text-slate-400 leading-tight">
-                Vitaminas y minerales que aportan a tu bienestar y resistencia.
+            <div className="bg-white border border-neutral-200 p-4 rounded-xl space-y-1">
+              <span className="text-xl">⚡</span>
+              <strong className="text-neutral-950 block text-sm">Vit. C, E & Zinc</strong>
+              <p className="text-neutral-600 text-[11px] leading-tight">
+                Minerales y vitaminas que apoyan la resistencia física y reducen la fatiga.
               </p>
             </div>
 
-            <div className="bg-[#10121a] border border-slate-800 p-2.5 rounded space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="w-5 h-5 rounded bg-emerald-900/40 text-emerald-400 flex items-center justify-center font-bold text-xs">✓</span>
-                <span className="text-[8px] font-black bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded">0 AZÚCAR</span>
-              </div>
-              <strong className="text-white block text-xs">Sin Azúcar</strong>
-              <p className="text-[10px] text-slate-400 leading-tight">
-                0 g de azúcar añadida y solo 0,5 kcal por gomita. Con colágeno y biotina.
+            <div className="bg-white border border-neutral-200 p-4 rounded-xl space-y-1">
+              <span className="text-xl">🛡️</span>
+              <strong className="text-neutral-950 block text-sm">0% Azúcar</strong>
+              <p className="text-neutral-600 text-[11px] leading-tight">
+                Solo 0,5 kcal por gomita con colágeno hidrolizado y edulcorantes seguros.
               </p>
             </div>
           </div>
+        </div>
 
-          {/* TABLA NUTRICIONAL OFICIAL */}
-          <div className="border border-slate-800 rounded overflow-hidden text-[11px]">
-            <div className="bg-black text-white font-bold p-2 flex justify-between">
-              <span>Información Nutricional</span>
-              <span className="text-slate-400">por gomita (1 g)</span>
+        {/* TABLA NUTRICIONAL OFICIAL EN BLANCO Y NEGRO */}
+        <div className="max-w-xl mx-auto border border-neutral-300 rounded-xl overflow-hidden bg-white text-xs">
+          <div className="bg-neutral-950 text-white font-bold p-3 flex justify-between">
+            <span className="uppercase tracking-wider">Información Nutricional Oficial</span>
+            <span className="text-neutral-400">Por gomita (1 g)</span>
+          </div>
+          <div className="divide-y divide-neutral-200">
+            <div className="flex justify-between p-2.5">
+              <span className="text-neutral-700">Calorías</span>
+              <strong className="text-neutral-950">0,5 kcal</strong>
             </div>
-            <div className="divide-y divide-slate-800 bg-[#0d0e14]">
-              <div className="flex justify-between p-1.5 text-slate-300">
-                <span>Calorías</span>
-                <strong className="text-pink-400">0,5 kcal</strong>
-              </div>
-              <div className="flex justify-between p-1.5 text-slate-300">
-                <span>Azúcares añadidos</span>
-                <strong className="text-white">0 g</strong>
-              </div>
-              <div className="flex justify-between p-1.5 text-slate-300">
-                <span>Vitamina C</span>
-                <strong className="text-white">22 mg</strong>
-              </div>
-              <div className="flex justify-between p-1.5 text-slate-300">
-                <span>Vitamina E</span>
-                <strong className="text-white">1,9 mg</strong>
-              </div>
-              <div className="flex justify-between p-1.5 text-slate-300">
-                <span>Colágeno hidrolizado</span>
-                <strong className="text-pink-400">4,45 mg</strong>
-              </div>
-              <div className="flex justify-between p-1.5 text-slate-300">
-                <span>Borojó</span>
-                <strong className="text-white">1,25 mg</strong>
-              </div>
-              <div className="flex justify-between p-1.5 text-slate-300">
-                <span>Chontaduro</span>
-                <strong className="text-white">0,35 mg</strong>
-              </div>
-              <div className="flex justify-between p-1.5 text-slate-300">
-                <span>Zinc</span>
-                <strong className="text-white">0,08 mg</strong>
-              </div>
+            <div className="flex justify-between p-2.5">
+              <span className="text-neutral-700">Azúcares añadidos</span>
+              <strong className="text-neutral-950">0 g</strong>
+            </div>
+            <div className="flex justify-between p-2.5">
+              <span className="text-neutral-700">Vitamina C</span>
+              <strong className="text-neutral-950">22 mg</strong>
+            </div>
+            <div className="flex justify-between p-2.5">
+              <span className="text-neutral-700">Vitamina E</span>
+              <strong className="text-neutral-950">1,9 mg</strong>
+            </div>
+            <div className="flex justify-between p-2.5">
+              <span className="text-neutral-700">Colágeno hidrolizado</span>
+              <strong className="text-neutral-950">4,45 mg</strong>
+            </div>
+            <div className="flex justify-between p-2.5">
+              <span className="text-neutral-700">Borojó</span>
+              <strong className="text-neutral-950">1,25 mg</strong>
+            </div>
+            <div className="flex justify-between p-2.5">
+              <span className="text-neutral-700">Chontaduro</span>
+              <strong className="text-neutral-950">0,35 mg</strong>
+            </div>
+            <div className="flex justify-between p-2.5">
+              <span className="text-neutral-700">Zinc</span>
+              <strong className="text-neutral-950">0,08 mg</strong>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* 5. SELECTOR DE PRESENTACIONES Y PRECIOS REDONDOS CON ENVÍO GRATIS */}
-        <section className="bg-[#141722] border-2 border-slate-700 rounded-lg p-3.5 md:p-4 space-y-3">
-          <div>
-            <span className="text-[10px] font-black uppercase text-[#00f0ff] tracking-widest block">
-              Paso 1: Elige tu Presentación
+      {/* 6. CÓMO FUNCIONA LA COMPRA SEGURA (PAGO EN LA ENTREGA) */}
+      <section id="como-funciona" className="bg-neutral-100 border-y border-neutral-200 py-12 px-4">
+        <div className="max-w-4xl mx-auto space-y-8">
+          <div className="text-center max-w-xl mx-auto space-y-2">
+            <span className="text-[11px] font-black uppercase tracking-widest text-neutral-500">
+              Cero Riesgo
             </span>
-            <h2 className="text-base md:text-lg font-black text-white uppercase">
-              Opciones con Envío Gratis Incluido
+            <h2 className="text-2xl md:text-3xl font-black text-neutral-950 tracking-tight">
+              Compra Segura con Pago en la Entrega
             </h2>
-          </div>
-
-          <div className="space-y-2.5">
-            {PRODUCT_BUNDLES.map((pack) => {
-              const isSelected = selectedPack.id === pack.id;
-              return (
-                <div
-                  key={pack.id}
-                  onClick={() => setSelectedPack(pack)}
-                  className={`relative p-3 rounded-lg border-2 transition-all cursor-pointer ${
-                    isSelected
-                      ? "bg-[#1c2030] border-[#ff007f]"
-                      : "bg-[#10121a] border-slate-800 hover:border-slate-700"
-                  }`}
-                >
-                  {/* Badge plano de esquina */}
-                  <div className="flex items-center justify-between mb-1">
-                    <span
-                      className={`text-[9px] font-black uppercase px-2 py-0.5 rounded ${
-                        pack.recommended
-                          ? "bg-[#ff007f] text-white"
-                          : pack.id === "pack_frasco_30"
-                          ? "bg-[#00f0ff] text-black"
-                          : "bg-slate-700 text-slate-200"
-                      }`}
-                    >
-                      {pack.badge}
-                    </span>
-                    <span className="text-[10px] font-bold text-emerald-400 uppercase">
-                      Envío Gratis
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2.5">
-                      <div
-                        className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                          isSelected ? "border-[#ff007f] bg-[#ff007f]" : "border-slate-600"
-                        }`}
-                      >
-                        {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white"></span>}
-                      </div>
-                      <div>
-                        <h3 className="font-black text-sm text-white">
-                          {pack.name}
-                        </h3>
-                        <p className="text-[11px] text-slate-300">
-                          {pack.unitLabel} • <span className="text-slate-400">{pack.perDose}</span>
-                        </p>
-                        <p className="text-[10px] font-bold text-pink-400 mt-0.5">
-                          {pack.savings}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="text-right shrink-0">
-                      <span className="text-xs text-slate-500 line-through block">
-                        {money(pack.regularPrice)}
-                      </span>
-                      <span className="text-2xl font-black text-white">
-                        {money(pack.price)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* BOTÓN PRINCIPAL DE COMPRA */}
-          <div ref={ctaButtonRef} className="pt-1">
-            <button
-              onClick={() => openCheckout()}
-              className="w-full py-3.5 bg-[#ff007f] hover:bg-[#e0006f] text-white font-black text-sm md:text-base uppercase tracking-wider rounded-lg border-2 border-black active:translate-y-0.5 transition-all cursor-pointer flex items-center justify-center gap-2 shadow-[2px_2px_0px_#000]"
-            >
-              <span>PEDIR {selectedPack.name} ({money(selectedPack.price)})</span>
-              <span>→</span>
-            </button>
-            <p className="text-center text-[10px] text-slate-400 mt-1.5">
-              🛡️ No pagas nada por adelantado • Pago en la entrega por Tealca
+            <p className="text-xs md:text-sm text-neutral-600">
+              No necesitas tarjeta de crédito ni hacer transferencias previas para pedir.
             </p>
           </div>
-        </section>
 
-        {/* 6. SECCIÓN EXACTA: COMPRA SEGURA - PAGO EN LA ENTREGA */}
-        <section className="bg-[#141722] border border-slate-800 rounded-lg p-3.5 space-y-3 text-xs">
-          <div className="text-center space-y-1">
-            <span className="inline-block bg-pink-500/20 text-[#ff007f] text-[9px] font-black uppercase px-2 py-0.5 rounded">
-              Compra Segura
-            </span>
-            <h2 className="text-base font-black text-white">
-              Pago en la entrega
-            </h2>
-          </div>
-
-          {/* LOS 3 PASOS NUMERADOS */}
-          <div className="space-y-2.5 pt-1">
-            <div className="flex items-start gap-3">
-              <span className="w-6 h-6 rounded-full border-2 border-[#ff007f] text-[#ff007f] font-black flex items-center justify-center shrink-0 text-xs">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white p-5 rounded-xl border border-neutral-200 space-y-2 text-center md:text-left">
+              <span className="w-8 h-8 rounded-full bg-neutral-950 text-white font-black text-xs flex items-center justify-center mx-auto md:mx-0">
                 1
               </span>
-              <div>
-                <strong className="text-white block text-xs">Elige tu combo</strong>
-                <p className="text-[11px] text-slate-300">1 par ($21), 3 pares ($25) o el pote de 30 ($45).</p>
-              </div>
+              <h3 className="font-bold text-neutral-950 text-sm">Eliges tu Presentación</h3>
+              <p className="text-xs text-neutral-600 leading-relaxed">
+                Selecciona la opción que prefieras (Recomendado: 3 Pares por $25 o Frasco de 30 por $45).
+              </p>
             </div>
 
-            <div className="flex items-start gap-3">
-              <span className="w-6 h-6 rounded-full border-2 border-[#ff007f] text-[#ff007f] font-black flex items-center justify-center shrink-0 text-xs">
+            <div className="bg-white p-5 rounded-xl border border-neutral-200 space-y-2 text-center md:text-left">
+              <span className="w-8 h-8 rounded-full bg-neutral-950 text-white font-black text-xs flex items-center justify-center mx-auto md:mx-0">
                 2
               </span>
-              <div>
-                <strong className="text-white block text-xs">Llena tus datos</strong>
-                <p className="text-[11px] text-slate-300">Nombre, WhatsApp y agencia Tealca o dirección. Un minuto.</p>
-              </div>
+              <h3 className="font-bold text-neutral-950 text-sm">Completas tus Datos</h3>
+              <p className="text-xs text-neutral-600 leading-relaxed">
+                Indicas tu nombre, teléfono y ciudad. Despachamos tu paquete 100% sellado y discreto por Tealca.
+              </p>
             </div>
 
-            <div className="flex items-start gap-3">
-              <span className="w-6 h-6 rounded-full border-2 border-[#ff007f] text-[#ff007f] font-black flex items-center justify-center shrink-0 text-xs">
+            <div className="bg-white p-5 rounded-xl border border-neutral-200 space-y-2 text-center md:text-left">
+              <span className="w-8 h-8 rounded-full bg-neutral-950 text-white font-black text-xs flex items-center justify-center mx-auto md:mx-0">
                 3
               </span>
-              <div>
-                <strong className="text-white block text-xs">Recibe y pago en la entrega</strong>
-                <p className="text-[11px] text-slate-300">Llega discreto en 24 a 72 horas hábiles por Tealca. Pagas en efectivo o Pago Móvil.</p>
-              </div>
-            </div>
-          </div>
-
-          {/* 4 BADGES DE CONFIANZA */}
-          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800">
-            <div className="bg-[#10121a] p-2 rounded border border-slate-800 flex items-center gap-2">
-              <span className="text-sm">💵</span>
-              <span className="text-[10px] font-bold text-white">Pago en la entrega</span>
-            </div>
-            <div className="bg-[#10121a] p-2 rounded border border-slate-800 flex items-center gap-2">
-              <span className="text-sm">🚚</span>
-              <span className="text-[10px] font-bold text-white">Envío gratis y discreto</span>
-            </div>
-            <div className="bg-[#10121a] p-2 rounded border border-slate-800 flex items-center gap-2">
-              <span className="text-sm">🛡️</span>
-              <span className="text-[10px] font-bold text-white">Garantía de entrega</span>
-            </div>
-            <div className="bg-[#10121a] p-2 rounded border border-slate-800 flex items-center gap-2">
-              <span className="text-sm">💬</span>
-              <span className="text-[10px] font-bold text-white">Soporte WhatsApp</span>
-            </div>
-          </div>
-        </section>
-
-        {/* 7. GUÍA DE USO Y PREGUNTAS FRECUENTES */}
-        <section className="bg-[#141722] border border-slate-800 rounded-lg p-3.5 space-y-2.5 text-xs">
-          <h2 className="font-black text-white text-sm uppercase">Preguntas Frecuentes</h2>
-
-          <div className="space-y-2">
-            <div className="border-b border-slate-800 pb-2">
-              <strong className="text-[#00f0ff] block text-xs">¿Cómo se consumen?</strong>
-              <p className="text-slate-300 text-[11px] mt-0.5">
-                Consume 1 o 2 gomitas masticables entre 30 y 45 minutos antes de la cita.
-              </p>
-            </div>
-
-            <div className="border-b border-slate-800 pb-2">
-              <strong className="text-[#ffe600] block text-xs">¿El empaque es discreto?</strong>
-              <p className="text-slate-300 text-[11px] mt-0.5">
-                Totalmente discreto. Sobre neutro sellado sin leyendas ni fotos exteriores.
-              </p>
-            </div>
-
-            <div>
-              <strong className="text-emerald-400 block text-xs">¿Cómo es el pago en la entrega?</strong>
-              <p className="text-slate-300 text-[11px] mt-0.5">
-                Pagas al momento de la entrega por Tealca: dólares en efectivo o Pago Móvil a tasa oficial.
+              <h3 className="font-bold text-neutral-950 text-sm">Pago en la Entrega</h3>
+              <p className="text-xs text-neutral-600 leading-relaxed">
+                Recibes en tu dirección o agencia más cercana y pagas en ese momento en divisas o Pago Móvil.
               </p>
             </div>
           </div>
-        </section>
 
-        {/* 8. FOOTER */}
-        <footer className="border-t border-slate-800 pt-4 text-center text-[11px] text-slate-500 space-y-2">
-          <p>© {new Date().getFullYear()} Gummies Viking Venezuela • Borojó & Chontaduro</p>
-          <div className="flex justify-center gap-3 text-slate-400">
-            <button onClick={() => setActiveLegalModal("privacy")} className="hover:underline cursor-pointer">
-              Privacidad y Discreción
-            </button>
-            <span>•</span>
-            <button onClick={() => setActiveLegalModal("shipping")} className="hover:underline cursor-pointer">
-              Envíos Tealca
-            </button>
-            <span>•</span>
-            <button onClick={() => setActiveLegalModal("guide")} className="hover:underline cursor-pointer">
-              Uso Responsable
-            </button>
-          </div>
-        </footer>
-      </main>
-
-      {/* 9. STICKY DOCK EN MÓVIL (PLANO Y DIRECTO) */}
-      {showStickyBar && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#13151c] border-t-2 border-slate-700 p-2.5 md:hidden">
-          <div className="flex items-center justify-between gap-2.5 max-w-md mx-auto">
-            <div>
-              <span className="text-[10px] text-[#00f0ff] font-black uppercase block leading-none">
-                {selectedPack.name}
-              </span>
-              <span className="text-lg font-black text-white leading-tight">
-                {money(selectedPack.price)}
-              </span>
-              <span className="text-[9px] text-emerald-400 font-bold block">
-                Envío Gratis • Pago en la Entrega
-              </span>
-            </div>
+          <div className="text-center pt-2">
             <button
               onClick={() => openCheckout()}
-              className="flex-1 py-3 bg-[#ff007f] hover:bg-[#e0006f] text-white font-black text-xs uppercase tracking-wider rounded border border-black cursor-pointer text-center"
+              className="bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-sm px-8 py-3.5 rounded transition-all shadow"
             >
-              Pedir · Pago en la Entrega →
+              Pedir Ahora con Pago en la Entrega
             </button>
           </div>
         </div>
+      </section>
+
+      {/* 7. PREGUNTAS FRECUENTES (ACORDEÓN SENCILLO) */}
+      <section className="py-12 px-4 max-w-3xl mx-auto space-y-6">
+        <h2 className="text-xl md:text-2xl font-black text-center text-neutral-950">
+          Preguntas Frecuentes
+        </h2>
+
+        <div className="space-y-3 text-xs md:text-sm">
+          <div className="bg-white border border-neutral-200 p-4 rounded-xl space-y-1">
+            <strong className="text-neutral-950 block">¿Cómo se consumen las gomitas?</strong>
+            <p className="text-neutral-600">
+              Consume 1 o 2 gomitas masticables unos 30 a 45 minutos antes de la actividad o como complemento en tu rutina matutina para tener energía todo el día.
+            </p>
+          </div>
+
+          <div className="bg-white border border-neutral-200 p-4 rounded-xl space-y-1">
+            <strong className="text-neutral-950 block">¿El paquete es discreto?</strong>
+            <p className="text-neutral-600">
+              Sí, 100% confidencial. Se envía en bolsa de seguridad opaca y sellada de Tealca, sin imágenes ni texto explícito en el exterior.
+            </p>
+          </div>
+
+          <div className="bg-white border border-neutral-200 p-4 rounded-xl space-y-1">
+            <strong className="text-neutral-950 block">¿Cuánto tarda en llegar mi pedido?</strong>
+            <p className="text-neutral-600">
+              Generalmente entre 24 y 48 horas hábiles a las principales ciudades del país mediante Tealca.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* 8. FOOTER EDITORIAL (WIX 3304) */}
+      <footer className="bg-white border-t border-neutral-200 py-8 px-4 text-xs text-neutral-500">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+          <div>
+            <strong className="text-neutral-950 block">Gummies Viking Venezuela</strong>
+            <p className="text-[11px] text-neutral-400">Distribución oficial a nivel nacional con pago en la entrega.</p>
+          </div>
+          <div className="flex items-center gap-4 text-[11px]">
+            <button onClick={() => setActiveLegalModal("privacy")} className="hover:underline">Privacidad</button>
+            <button onClick={() => setActiveLegalModal("shipping")} className="hover:underline">Envíos Tealca</button>
+            <button onClick={() => setActiveLegalModal("guide")} className="hover:underline">Modo de Uso</button>
+          </div>
+        </div>
+      </footer>
+
+      {/* 9. STICKY BOTTOM BAR (EN MÓVIL) */}
+      {showStickyBar && (
+        <div className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-neutral-200 p-3 flex items-center justify-between gap-3 md:hidden shadow-lg">
+          <div>
+            <span className="text-[10px] text-neutral-500 font-bold block uppercase">
+              {selectedPack.name}
+            </span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-lg font-black text-neutral-950">${selectedPack.price}</span>
+              <span className="text-[9px] text-emerald-700 font-bold uppercase">Envío Gratis</span>
+            </div>
+          </div>
+          <button
+            onClick={() => openCheckout()}
+            className="bg-neutral-950 text-white text-xs font-black px-5 py-2.5 rounded shadow"
+          >
+            Pedir (Pago al Recibir)
+          </button>
+        </div>
       )}
 
-      {/* 10. MODAL DE CHECKOUT PLANO */}
+      {/* 10. MODAL DE CHECKOUT COD (PAGO EN LA ENTREGA) */}
       {isCheckoutOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/85">
-          <div className="bg-[#141722] w-full max-w-md rounded-lg border-2 border-slate-600 p-4 space-y-3 relative max-h-[92vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/60 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white border border-neutral-200 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl relative my-8">
             <button
               onClick={() => setIsCheckoutOpen(false)}
-              className="absolute top-3 right-3 text-slate-400 hover:text-white font-bold w-7 h-7 bg-slate-800 rounded flex items-center justify-center cursor-pointer"
+              className="absolute top-4 right-4 w-7 h-7 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-700 flex items-center justify-center text-sm font-bold"
             >
               ✕
             </button>
 
-            <div className="border-b border-slate-800 pb-2">
-              <span className="text-[9px] font-black text-[#00f0ff] uppercase tracking-widest block">
-                Pago en la Entrega por Tealca
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
+                Pago en la Entrega • Cero Riesgo
               </span>
-              <h3 className="text-base font-black text-white">
-                Datos de Entrega
-              </h3>
-              <p className="text-xs text-slate-300">
-                Opción: <strong className="text-white">{selectedPack.name}</strong> • Total: <strong className="text-[#ff007f]">{money(selectedPack.price)}</strong> (Envío Gratis)
+              <h2 className="text-lg font-black text-neutral-950 mt-1">
+                Completa tu Pedido
+              </h2>
+              <p className="text-xs text-neutral-500">
+                Pagas al mensajero o en la agencia de Tealca únicamente al recibir.
               </p>
             </div>
 
-            <form onSubmit={handleFormSubmit} className="space-y-2.5 text-xs">
+            {/* Selector de combo rápido dentro del modal */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-neutral-700 uppercase">
+                Presentación Seleccionada:
+              </label>
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                {PRODUCT_BUNDLES.map((pack) => (
+                  <button
+                    key={pack.id}
+                    type="button"
+                    onClick={() => setSelectedPack(pack)}
+                    className={`p-2 rounded-lg border text-center transition-all ${
+                      selectedPack.id === pack.id
+                        ? "border-neutral-950 bg-neutral-950 text-white font-bold"
+                        : "border-neutral-200 bg-neutral-50 text-neutral-700"
+                    }`}
+                  >
+                    <span className="block text-[11px] truncate">{pack.name.split("(")[0]}</span>
+                    <span className="text-xs font-black">${pack.price}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Formulario */}
+            <form onSubmit={handleSubmitOrder} className="space-y-3 text-xs">
               <div>
-                <label className="block text-slate-300 font-bold mb-1">Nombre y Apellido *</label>
+                <label className="block font-bold text-neutral-700 mb-1">
+                  Nombre y Apellido *
+                </label>
                 <input
                   type="text"
+                  name="fullName"
                   required
-                  placeholder="Ej: Alejandro Pérez"
+                  placeholder="Ej. Carlos Mendoza"
                   value={formData.fullName}
-                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                  className="w-full bg-[#0d0e14] border border-slate-700 rounded p-2 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#ff007f]"
+                  onChange={handleInputChange}
+                  className="w-full p-2.5 rounded-lg border border-neutral-300 focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950 outline-none text-neutral-900"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-bold mb-1">Teléfono WhatsApp *</label>
+                <label className="block font-bold text-neutral-700 mb-1">
+                  Teléfono / WhatsApp *
+                </label>
                 <input
                   type="tel"
+                  name="phone"
                   required
-                  placeholder="Ej: 0412 1234567"
+                  placeholder="Ej. 0412 1234567"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full bg-[#0d0e14] border border-slate-700 rounded p-2 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#ff007f]"
+                  onChange={handleInputChange}
+                  className="w-full p-2.5 rounded-lg border border-neutral-300 focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950 outline-none text-neutral-900"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-bold mb-1">Estado de Entrega *</label>
+                <label className="block font-bold text-neutral-700 mb-1">
+                  Estado / Región *
+                </label>
                 <select
+                  name="state"
                   value={formData.state}
-                  onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                  className="w-full bg-[#0d0e14] border border-slate-700 rounded p-2 text-white focus:outline-hidden focus:border-[#ff007f]"
+                  onChange={handleInputChange}
+                  className="w-full p-2.5 rounded-lg border border-neutral-300 focus:border-neutral-950 outline-none bg-white text-neutral-900"
                 >
                   {VENEZUELA_STATES.map((st) => (
-                    <option key={st} value={st} className="bg-[#0d0e14] text-white">
-                      {st}
-                    </option>
+                    <option key={st} value={st}>{st}</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-slate-300 font-bold mb-1">
-                  Dirección exacta o Agencia Tealca preferida *
+                <label className="block font-bold text-neutral-700 mb-1">
+                  Ciudad y Dirección exacta (o Agencia Tealca) *
                 </label>
-                <input
-                  type="text"
+                <textarea
+                  name="cityAddress"
                   required
-                  placeholder="Ej: Tealca Las Mercedes, Caracas o Urb. El Rosal calle 4"
+                  rows={2}
+                  placeholder="Ej. Maracay, Urb. Calicanto, Calle 5, Casa #12 (o retirar en Tealca Los Samanes)"
                   value={formData.cityAddress}
-                  onChange={(e) => setFormData({ ...formData, cityAddress: e.target.value })}
-                  className="w-full bg-[#0d0e14] border border-slate-700 rounded p-2 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#ff007f]"
+                  onChange={handleInputChange}
+                  className="w-full p-2.5 rounded-lg border border-neutral-300 focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950 outline-none text-neutral-900 resize-none"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-bold mb-1">Método de Pago al Recibir *</label>
-                <select
-                  value={formData.paymentMethod}
-                  onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
-                  className="w-full bg-[#0d0e14] border border-slate-700 rounded p-2 text-white focus:outline-hidden focus:border-[#ff007f]"
-                >
-                  <option value="efectivo_divisas">Dólares en Efectivo ($)</option>
-                  <option value="pagomovil">Pago Móvil (Bs a tasa oficial BCV)</option>
-                  <option value="binance_usdt">Binance USDT</option>
-                </select>
-              </div>
+                <label className="block font-bold text-neutral-700 mb-1">
+                  Método de Pago en la Entrega
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className={`p-2.5 rounded-lg border text-center cursor-pointer flex items-center justify-center gap-1.5 ${
+                    formData.paymentMethod === "efectivo_divisas"
+                      ? "border-neutral-950 bg-neutral-100 font-bold"
+                      : "border-neutral-200 text-neutral-600"
+                  }`}>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="efectivo_divisas"
+                      checked={formData.paymentMethod === "efectivo_divisas"}
+                      onChange={handleInputChange}
+                      className="hidden"
+                    />
+                    💵 Efectivo Divisas
+                  </label>
 
-              <div>
-                <label className="block text-slate-300 font-bold mb-1">Nota o punto de referencia (Opcional)</label>
-                <input
-                  type="text"
-                  placeholder="Ej: Entregar en horario de oficina"
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full bg-[#0d0e14] border border-slate-700 rounded p-2 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#ff007f]"
-                />
+                  <label className={`p-2.5 rounded-lg border text-center cursor-pointer flex items-center justify-center gap-1.5 ${
+                    formData.paymentMethod === "pago_movil"
+                      ? "border-neutral-950 bg-neutral-100 font-bold"
+                      : "border-neutral-200 text-neutral-600"
+                  }`}>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="pago_movil"
+                      checked={formData.paymentMethod === "pago_movil"}
+                      onChange={handleInputChange}
+                      className="hidden"
+                    />
+                    📲 Pago Móvil
+                  </label>
+                </div>
               </div>
 
               {errorMessage && (
-                <p className="text-pink-400 font-bold text-xs bg-pink-950/40 border border-pink-500/30 p-2 rounded">
-                  {errorMessage}
-                </p>
+                <p className="text-rose-600 text-[11px] font-bold">{errorMessage}</p>
               )}
+
+              {/* Resumen Total */}
+              <div className="bg-neutral-50 p-3 rounded-lg border border-neutral-200 flex items-center justify-between">
+                <div>
+                  <span className="text-[11px] text-neutral-500 block">Total a pagar al recibir:</span>
+                  <strong className="text-base text-neutral-950 font-black">${selectedPack.price} USD</strong>
+                </div>
+                <span className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded font-bold uppercase">
+                  Envío Gratis Incluido
+                </span>
+              </div>
 
               <button
                 type="submit"
                 disabled={formStatus === "submitting"}
-                className="w-full py-3 bg-[#ff007f] hover:bg-[#e0006f] text-white font-black text-sm uppercase tracking-wider rounded border border-black cursor-pointer disabled:opacity-50"
+                className="w-full bg-neutral-950 hover:bg-neutral-800 disabled:opacity-50 text-white font-black text-sm py-3 rounded-lg transition-all shadow-md mt-2 uppercase tracking-wide"
               >
-                {formStatus === "submitting" ? "Procesando..." : `CONFIRMAR PEDIDO (${money(selectedPack.price)}) →`}
+                {formStatus === "submitting" ? "Procesando pedido..." : "Confirmar Pedido (Pagas al Recibir)"}
               </button>
             </form>
           </div>
         </div>
       )}
 
-      {/* 11. POP-UP DE CORTESÍA A LOS 5 SEGUNDOS (OFERTA 3 PARES POR $25) */}
-      {showDiscountModal && !isCheckoutOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85">
-          <div className="bg-[#141722] w-full max-w-sm rounded-lg border-2 border-[#ff007f] p-4 space-y-3 relative shadow-[4px_4px_0px_#000]">
-            <button
-              onClick={() => setShowDiscountModal(false)}
-              className="absolute top-2.5 right-2.5 text-slate-400 hover:text-white font-bold w-7 h-7 bg-slate-800 rounded flex items-center justify-center cursor-pointer"
-            >
-              ✕
-            </button>
-
-            <div className="text-center space-y-1 pt-1">
-              <span className="inline-block bg-[#ff007f] text-white text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded">
-                OFERTA ESTRELLA
-              </span>
-              <h3 className="text-base font-black text-white leading-tight">
-                ¡Lleva 3 Pares por solo $25 y Envío Gratis!
-              </h3>
-              <p className="text-[11px] text-slate-300">
-                Por solo <strong>$4 más que 1 par</strong> ($21), te llevas 3 pares completos (6 gomitas masticables). Pago en la entrega por Tealca.
-              </p>
-            </div>
-
-            <div className="bg-[#0f1118] p-2.5 rounded border border-slate-800 flex justify-between items-center text-xs">
-              <div>
-                <strong className="text-white block">Combo 3 Pares (6 Gomitas)</strong>
-                <span className="text-emerald-400 font-bold text-[10px]">Envío Gratis • Pago en la Entrega</span>
-              </div>
-              <span className="text-lg font-black text-white">$25</span>
-            </div>
-
-            <button
-              onClick={() => {
-                setShowDiscountModal(false);
-                openCheckout(PRODUCT_BUNDLES[0]);
-              }}
-              className="w-full py-3 bg-[#00f0ff] hover:bg-[#00d4e0] text-black font-black text-xs uppercase tracking-wider rounded border border-black cursor-pointer"
-            >
-              ¡APROVECHAR 3 PARES X $25!
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* 12. MODALES LEGALES */}
+      {/* MODALES LEGALES / GUÍAS */}
       {activeLegalModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85">
-          <div className="bg-[#141722] w-full max-w-md rounded-lg p-4 border border-slate-700 space-y-2.5 text-xs text-slate-300 max-h-[85vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/60 backdrop-blur-sm">
+          <div className="bg-white border border-neutral-200 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl relative">
             <button
               onClick={() => setActiveLegalModal(null)}
-              className="absolute top-3 right-3 text-slate-400 hover:text-white font-bold w-6 h-6 bg-slate-800 rounded flex items-center justify-center cursor-pointer"
+              className="absolute top-4 right-4 w-7 h-7 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-700 flex items-center justify-center text-sm font-bold"
             >
               ✕
             </button>
-            <h3 className="text-sm font-black text-white uppercase">
-              {activeLegalModal === "privacy" && "Privacidad y Discreción"}
-              {activeLegalModal === "shipping" && "Política de Envíos Tealca"}
-              {activeLegalModal === "guide" && "Guía de Consumo"}
+            <h3 className="text-base font-black text-neutral-950">
+              {activeLegalModal === "privacy" && "Política de Privacidad y Confidencialidad"}
+              {activeLegalModal === "shipping" && "Información de Despachos Tealca"}
+              {activeLegalModal === "guide" && "Guía de Consumo y Recomendaciones"}
             </h3>
-            {activeLegalModal === "privacy" && (
-              <p>
-                Todos los pedidos se despachan en empaque completamente neutro (sobre ciego sellado sin leyendas ni fotos exteriores). Máxima confidencialidad.
-              </p>
-            )}
-            {activeLegalModal === "shipping" && (
-              <p>
-                Despacho nacional por Tealca. Pago en la entrega en efectivo o Pago Móvil. Todos los paquetes incluyen flete gratis.
-              </p>
-            )}
-            {activeLegalModal === "guide" && (
-              <p>
-                Gummies Viking es un suplemento alimenticio en gomitas masticables elaborado con borojó y chontaduro. Consumir 1 o 2 unidades 30 a 45 minutos antes de la cita.
-              </p>
-            )}
+            <p className="text-xs text-neutral-600 leading-relaxed">
+              {activeLegalModal === "privacy" &&
+                "Tus datos personales y de contacto se utilizan exclusivamente para coordinar el envío de tu paquete por Tealca. Tus datos no se comparten con terceros y tu paquete viaja en empaque 100% neutro y confidencial."}
+              {activeLegalModal === "shipping" &&
+                "Los despachos se realizan a nivel nacional a través de Tealca hacia tu dirección de residencia o para retirar en la agencia Tealca más cercana de tu ciudad. El envío es 100% gratuito en todas las presentaciones."}
+              {activeLegalModal === "guide" &&
+                "Mastica 1 o 2 gomitas antes del momento deseado o durante el día para mantener energía constante. Conservar en un lugar fresco y seco, lejos del calor excesivo. No recomendado para menores de 18 años ni mujeres embarazadas."}
+            </p>
           </div>
         </div>
       )}
