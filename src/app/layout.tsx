@@ -19,7 +19,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID || "2395875734496328";
 
   return (
-    <html lang="es-VE" className="scroll-smooth">
+    <html lang="es-VE" className="scroll-smooth dark">
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -36,7 +36,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           />
         </noscript>
       </head>
-      <body className="antialiased bg-[#fafafa] text-neutral-900 selection:bg-neutral-900 selection:text-white font-sans">
+      <body className="antialiased bg-[#07080c] text-neutral-100 selection:bg-rose-500 selection:text-white font-sans">
         {children}
       </body>
     </html>
