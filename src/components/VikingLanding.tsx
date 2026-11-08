@@ -422,12 +422,6 @@ export default function VikingLanding() {
                   </div>
 
                   <p className="text-xs text-[#5c5349] leading-snug">{bundle.savings}</p>
-
-                  {bundle.freeBonus && (
-                    <div className="mt-2.5 pt-2 border-t border-dashed border-rose-200 flex items-center gap-1.5 text-[11px] font-black text-rose-700 bg-rose-50/80 px-2 py-1.5 rounded-lg">
-                      <span>{bundle.freeBonus}</span>
-                    </div>
-                  )}
                 </div>
               );
             })}
