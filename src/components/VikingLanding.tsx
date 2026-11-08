@@ -208,24 +208,72 @@ export default function VikingLanding() {
         <span>🇻🇪 <strong>PAGO EN LA ENTREGA</strong> EN TODA VENEZUELA · <strong>ENVÍO 100% GRATIS POR TEALCA</strong></span>
       </aside>
 
-      {/* Header Limpio */}
-      <header className="border-b border-[#e8e1d5] bg-white/90 backdrop-blur-md sticky top-0 z-30">
+      {/* Header Editorial de Alta Gama */}
+      <header className="border-b border-[#e8e1d5] bg-white/95 backdrop-blur-md sticky top-0 z-30 shadow-xs">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-rose-600 text-white font-black text-sm flex items-center justify-center shadow-xs">
-              GV
+          <div className="flex items-center gap-3">
+            {/* Emblema Insignia Viking en SVG Arquitectónico */}
+            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-b from-[#1f1b18] to-[#12100e] border border-[#d8caa8]/40 shadow-md flex items-center justify-center p-1.5 flex-shrink-0 group">
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-rose-500/10 via-transparent to-amber-500/10 pointer-events-none" />
+              <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-sm">
+                {/* Cuernos Vikingos / Alas Geométricas */}
+                <path
+                  d="M7 11C7 11 11 10 14 14L20 22L26 14C29 10 33 11 33 11C33 11 30 18 26 21L20 27L14 21C10 18 7 11 7 11Z"
+                  fill="url(#vikingBlade)"
+                />
+                {/* Cresta / Yelmo 'V' Central */}
+                <path
+                  d="M15 13L20 7L25 13L20 17L15 13Z"
+                  fill="url(#goldSpike)"
+                />
+                {/* Escudo Monolítico 'V' */}
+                <path
+                  d="M12 21L20 33L28 21L23 21L20 26L17 21H12Z"
+                  fill="#ffffff"
+                />
+                {/* Joya de Vitalidad Rubí */}
+                <circle cx="20" cy="18" r="1.5" fill="#f43f5e" />
+                <defs>
+                  <linearGradient id="vikingBlade" x1="20" y1="7" x2="20" y2="27" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#f8fafc" />
+                    <stop offset="0.6" stopColor="#e2e8f0" />
+                    <stop offset="1" stopColor="#94a3b8" />
+                  </linearGradient>
+                  <linearGradient id="goldSpike" x1="20" y1="7" x2="20" y2="17" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#fbbf24" />
+                    <stop offset="1" stopColor="#d97706" />
+                  </linearGradient>
+                </defs>
+              </svg>
             </div>
-            <div>
-              <span className="font-extrabold tracking-tight text-sm text-[#1f1b18] block leading-tight">GUMMIES VIKING</span>
-              <span className="text-[10px] text-[#857b70] tracking-wider uppercase block">Borojó & Chontaduro · Venezuela</span>
+
+            {/* Tipografía de Identidad Curada */}
+            <div className="flex flex-col">
+              <span className="text-[9px] font-black tracking-[0.22em] text-rose-600 uppercase leading-none">
+                LABORATORIO BOTÁNICO
+              </span>
+              <span className="font-serif text-lg md:text-xl font-black tracking-tight text-[#191613] leading-none mt-1">
+                GUMMIES VIKING
+              </span>
+              <span className="text-[9px] md:text-[10px] font-bold tracking-[0.14em] text-[#786e63] uppercase leading-none mt-1">
+                Borojó &amp; Chontaduro · Venezuela
+              </span>
             </div>
           </div>
-          <button
-            onClick={() => scrollToForm()}
-            className="text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-3 py-1.5 rounded-full transition-colors"
-          >
-            Pedir Ahora 🚚
-          </button>
+
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-1.5 bg-emerald-50 border border-emerald-200/80 rounded-full px-2.5 py-1 text-[11px] font-bold text-emerald-800">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Stock Disponible</span>
+            </div>
+            <button
+              onClick={() => scrollToForm()}
+              className="text-xs font-black text-white bg-[#1b8a43] hover:bg-[#167438] active:scale-95 px-3.5 py-2 rounded-full shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <span>Pedir Ahora</span>
+              <span className="text-sm">🚚</span>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -626,11 +674,20 @@ export default function VikingLanding() {
 
       </main>
 
-      {/* FOOTER */}
-      <footer className="max-w-4xl mx-auto px-4 text-center text-xs text-[#857b70] border-t border-[#e8e1d5] pt-6 pb-12">
-        <p className="font-bold text-[#1f1b18] mb-1">Gummies Viking Venezuela © {new Date().getFullYear()}</p>
-        <p className="max-w-md mx-auto text-[11px] leading-relaxed">
-          Suplemento alimenticio a base de Borojó, Chontaduro y Vitaminas. Este producto no sustituye una alimentación balanceada. Despacho nacional por Tealca.
+      {/* FOOTER EDITORIAL */}
+      <footer className="max-w-4xl mx-auto px-4 text-center text-xs text-[#857b70] border-t border-[#e8e1d5] pt-8 pb-14">
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <div className="w-5 h-5 rounded-md bg-[#1f1b18] border border-[#d8caa8]/30 flex items-center justify-center p-0.5">
+            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+              <path d="M7 11C7 11 11 10 14 14L20 22L26 14C29 10 33 11 33 11C33 11 30 18 26 21L20 27L14 21C10 18 7 11 7 11Z" fill="#e2e8f0" />
+              <path d="M15 13L20 7L25 13L20 17L15 13Z" fill="#fbbf24" />
+              <path d="M12 21L20 33L28 21L23 21L20 26L17 21H12Z" fill="#ffffff" />
+            </svg>
+          </div>
+          <span className="font-extrabold text-[#1f1b18] tracking-wider text-xs">GUMMIES VIKING VENEZUELA</span>
+        </div>
+        <p className="max-w-md mx-auto text-[11px] leading-relaxed text-[#73685d]">
+          Fórmula botánica con extractos de Borojó, Chontaduro y Minerales. Despacho nacional asegurado por Tealca con modalidad de Pago en la Entrega. © {new Date().getFullYear()}
         </p>
       </footer>
 
