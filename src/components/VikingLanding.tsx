@@ -84,8 +84,11 @@ const TESTIMONIALS = [
 
 export default function VikingLanding() {
   const [selectedPack, setSelectedPack] = useState<ProductBundle>(DEFAULT_BUNDLE);
+  const [includeCherrySachet, setIncludeCherrySachet] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showStickyBar, setShowStickyBar] = useState(false);
+
+  const finalPrice = selectedPack.price + (includeCherrySachet ? 4 : 0);
 
   // Formulario COD integrado en la página
   const [formData, setFormData] = useState({
@@ -155,9 +158,9 @@ export default function VikingLanding() {
         "track",
         "Purchase",
         {
-          content_name: selectedPack.name,
-          content_ids: [selectedPack.id],
-          value: selectedPack.price,
+          content_name: includeCherrySachet ? `${selectedPack.name} + Sachet Cherry` : selectedPack.name,
+          content_ids: [selectedPack.id, ...(includeCherrySachet ? ["sachet_cherry_10ml"] : [])],
+          value: finalPrice,
           currency: "USD"
         },
         { eventID: eventId }
@@ -169,7 +172,8 @@ export default function VikingLanding() {
       "👑 *PEDIDO GUMMIES VIKING - PAGO EN LA ENTREGA*",
       "------------------------------------",
       `*PROMO SELECCIONADA:* ${selectedPack.orderName}`,
-      `*TOTAL A PAGAR:* $${selectedPack.price} USD`,
+      ...(includeCherrySachet ? ["*EXTRA AÑADIDO:* 1 Sachet Gel Íntimo Cherry 10ml (+$4 USD)"] : []),
+      `*TOTAL A PAGAR:* $${finalPrice} USD`,
       `*ENVÍO:* 100% GRATIS POR TEALCA`,
       "",
       "*DATOS DE ENVÍO:*",
@@ -418,6 +422,12 @@ export default function VikingLanding() {
                   </div>
 
                   <p className="text-xs text-[#5c5349] leading-snug">{bundle.savings}</p>
+
+                  {bundle.freeBonus && (
+                    <div className="mt-2.5 pt-2 border-t border-dashed border-rose-200 flex items-center gap-1.5 text-[11px] font-black text-rose-700 bg-rose-50/80 px-2 py-1.5 rounded-lg">
+                      <span>{bundle.freeBonus}</span>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -442,10 +452,15 @@ export default function VikingLanding() {
               <div>
                 <span className="text-xs text-[#857b70] block">Pack seleccionado:</span>
                 <span className="font-bold text-sm text-[#1f1b18]">{selectedPack.name}</span>
+                {includeCherrySachet && (
+                  <span className="text-[11px] font-bold text-rose-600 block mt-0.5">
+                    + 1 Sachet Gel Cherry (+$4 USD)
+                  </span>
+                )}
               </div>
               <div className="text-right">
                 <span className="text-xs text-emerald-700 font-bold block">ENVÍO GRATIS</span>
-                <span className="text-lg font-black text-rose-600">${selectedPack.price} USD</span>
+                <span className="text-lg font-black text-rose-600">${finalPrice} USD</span>
               </div>
             </div>
 
@@ -528,6 +543,44 @@ export default function VikingLanding() {
                 />
               </div>
 
+              {/* ORDER BUMP: SACHET LUBRICANTE CHERRY */}
+              <div
+                onClick={() => setIncludeCherrySachet(!includeCherrySachet)}
+                className={`border-2 rounded-2xl p-3.5 cursor-pointer transition-all select-none ${
+                  includeCherrySachet
+                    ? "bg-rose-50/90 border-rose-600 shadow-md shadow-rose-900/10 ring-2 ring-rose-200"
+                    : "bg-[#faf8f5] border-dashed border-[#cfc4b2] hover:border-rose-400"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={includeCherrySachet}
+                    onChange={(e) => setIncludeCherrySachet(e.target.checked)}
+                    className="w-5 h-5 accent-rose-600 rounded cursor-pointer shrink-0"
+                  />
+                  <div className="relative w-14 h-14 rounded-xl overflow-hidden border border-rose-200 bg-white shrink-0">
+                    <Image
+                      src="/viking/sachet_cherry_gel.jpg"
+                      alt="Sachet Gel Íntimo Cherry 10mL"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-xs font-black text-[#1f1b18] uppercase tracking-wide">
+                        🔥 Extra: Gel Íntimo Cherry (10ml)
+                      </span>
+                      <span className="text-xs font-black text-rose-600 shrink-0">+$4 USD</span>
+                    </div>
+                    <p className="text-[11px] text-[#6b6155] leading-snug mt-0.5">
+                      Deslizamiento suave y aroma frutal a cereza para usar junto a tus gomitas. <span className="line-through text-[#a09587]">$10 sugerido</span>.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {formError && (
                 <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl font-medium">
                   {formError}
@@ -539,7 +592,7 @@ export default function VikingLanding() {
                 disabled={isSubmitting}
                 className="w-full bg-[#1b8a43] hover:bg-[#167438] active:scale-[0.99] text-white font-black text-base md:text-lg py-4 px-6 rounded-2xl shadow-xl shadow-emerald-900/25 transition-all flex items-center justify-center gap-2 mt-4 cursor-pointer"
               >
-                <span>{isSubmitting ? "REGISTRANDO PEDIDO..." : `PEDIR POR WHATSAPP ($${selectedPack.price})`}</span>
+                <span>{isSubmitting ? "REGISTRANDO PEDIDO..." : `PEDIR POR WHATSAPP ($${finalPrice} USD)`}</span>
                 <span>🚚</span>
               </button>
 
@@ -697,7 +750,7 @@ export default function VikingLanding() {
           <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
             <div>
               <span className="text-[10px] text-[#857b70] block uppercase font-bold">Pack Seleccionado:</span>
-              <span className="text-xs font-black text-rose-600">{selectedPack.name} (${selectedPack.price})</span>
+              <span className="text-xs font-black text-rose-600">{selectedPack.name} (${finalPrice})</span>
             </div>
             <button
               onClick={() => scrollToForm()}

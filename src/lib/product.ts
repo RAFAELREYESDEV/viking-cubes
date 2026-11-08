@@ -16,13 +16,14 @@ export type ProductBundle = {
   recommended: boolean;
   badge: string;
   perDose: string;
+  freeBonus?: string;
 };
 
 export const PRODUCT_BUNDLES: readonly ProductBundle[] = [
   {
     id: "pack_3_pares",
     name: "3 Pares (6 Gomitas)",
-    orderName: "Combo 3 Pares (6 Gomitas Masticables) · $25 Envío Gratis",
+    orderName: "Combo 3 Pares (6 Gomitas) + 🎁 REGALO Gel Íntimo Cherry 10ml · $25 Envío Gratis",
     unitLabel: "3 Sobres de Bolsillo",
     gummies: 6,
     price: 25,
@@ -34,7 +35,8 @@ export const PRODUCT_BUNDLES: readonly ProductBundle[] = [
     hasFreeShipping: true,
     recommended: true,
     badge: "MÁS POPULAR · MEJOR PRECIO",
-    perDose: "$8 por cita"
+    perDose: "$8 por cita",
+    freeBonus: "🎁 INCLUYE: 1 Sachet Gel Íntimo Cherry 10ml ($10 Valor)"
   },
   {
     id: "pack_1_par",
@@ -56,7 +58,7 @@ export const PRODUCT_BUNDLES: readonly ProductBundle[] = [
   {
     id: "pack_frasco_30",
     name: "Pote de 30 Gomitas",
-    orderName: "Pote de 30 Gomitas Masticables · $45 Envío Gratis",
+    orderName: "Pote de 30 Gomitas + 🎁 REGALO Gel Íntimo Cherry 10ml · $45 Envío Gratis",
     unitLabel: "1 Frasco Completo",
     gummies: 30,
     price: 45,
@@ -68,7 +70,8 @@ export const PRODUCT_BUNDLES: readonly ProductBundle[] = [
     hasFreeShipping: true,
     recommended: false,
     badge: "MÁXIMA DURACIÓN",
-    perDose: "$1.50 por dosis"
+    perDose: "$1.50 por dosis",
+    freeBonus: "🎁 INCLUYE: 1 Sachet Gel Íntimo Cherry 10ml ($10 Valor)"
   }
 ];
 
