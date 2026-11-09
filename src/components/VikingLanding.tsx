@@ -225,29 +225,14 @@ export default function VikingLanding() {
     }
 
     const messageLines = [
-      "👑 *PEDIDO GUMMIES VIKING - PAGO EN LA ENTREGA*",
-      "------------------------------------",
-      `*PROMO SELECCIONADA:* ${selectedPack.orderName}`,
-      ...(includeCherrySachet ? ["*EXTRA AÑADIDO:* 1 Sachet Gel Íntimo Cherry 10ml (+$4 USD)"] : []),
-      `*TOTAL A PAGAR:* $${finalPrice} USD`,
-      `*ENVÍO:* 100% GRATIS POR TEALCA`,
+      "¡Hola! 👋 Acabo de hacer mi pedido en la web:",
       "",
-      "*DATOS DE ENVÍO:*",
-      `• Nombre: ${formData.fullName.trim()}`,
-      `• Teléfono: ${formData.phone.trim()}`,
-      `• Estado: ${cleanState}`,
-      `• Dirección / Agencia Tealca: ${formData.cityAddress.trim()}`,
-      `• Pago al recibir: ${
-        formData.paymentMethod === "efectivo_divisas"
-          ? "Efectivo Divisas ($) al recibir"
-          : "Pago Móvil (tasa oficial) al recibir"
-      }`,
-      ...(formData.notes.trim() ? [`• Nota: ${formData.notes.trim()}`] : []),
+      `📦 *Pedido:* ${selectedPack.orderName}${includeCherrySachet ? " + Sachet Cherry" : ""}`,
+      `💵 *Total a pagar:* $${finalPrice} USD (Envío Gratis por Tealca)`,
+      `👤 *A nombre de:* ${formData.fullName.trim()}`,
+      `📍 *Destino:* ${formData.cityAddress.trim()} (${cleanState})`,
       "",
-      "------------------------------------",
-      "🤝 *PAGO EN LA ENTREGA:* Solo pago cuando el paquete llegue a mis manos por Tealca.",
-      "",
-      "¡Hola! Acabo de hacer mi pedido en la página. ¿Me confirman para coordinar el envío por Tealca?"
+      "¿Me confirman para coordinar el despacho por favor? 🙏✨"
     ];
 
     const message = messageLines.join("\n");
