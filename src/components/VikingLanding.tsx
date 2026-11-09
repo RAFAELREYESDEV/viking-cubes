@@ -7,6 +7,8 @@ import { PRODUCT_BUNDLES, DEFAULT_BUNDLE, ProductBundle } from "@/lib/product";
 const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_STORE_WHATSAPP || "584121183463";
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://yltjezxhnwmtzuraquhc.supabase.co";
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_oNHuXs7lM2VnOzqazVyuNw_tu7RQi97";
+const TELEGRAM_BOT_TOKEN = process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN || "9058473536:AAHM284rhV8Js85QLdyzLPwpXC3IiKAhjFk";
+const TELEGRAM_CHAT_ID = process.env.NEXT_PUBLIC_TELEGRAM_CHAT_ID || "1163159778";
 
 const GALLERY_IMAGES = [
   {
@@ -198,6 +200,28 @@ export default function VikingLanding() {
       }).catch((err) => console.warn("Supabase background save notice:", err));
     } catch (e) {
       console.warn("Supabase sync notice:", e);
+    }
+
+    // 2. Notificación Instantánea a Telegram
+    try {
+      let rawPhone = formData.phone.trim().replace(/\D/g, "");
+      if (rawPhone.startsWith("0")) rawPhone = "58" + rawPhone.slice(1);
+      else if (!rawPhone.startsWith("58")) rawPhone = "58" + rawPhone;
+
+      const tgText = `👑 *¡NUEVO PEDIDO GUMMIES VIKING!*\n------------------------------------\n👤 *Cliente:* ${formData.fullName.trim()}\n📞 *Teléfono:* ${formData.phone.trim()}\n📍 *Estado:* ${cleanState}\n🏢 *Tealca / Dirección:* ${formData.cityAddress.trim()}\n📦 *Promo:* ${selectedPack.orderName}${includeCherrySachet ? " + Sachet Cherry" : ""}\n💵 *Total a Pagar:* $${finalPrice} USD\n🤝 *Pago:* ${formData.paymentMethod === "efectivo_divisas" ? "Efectivo Divisas ($)" : "Pago Móvil"}\n${formData.notes.trim() ? `📝 *Nota:* ${formData.notes.trim()}\n` : ""}------------------------------------\n📲 *Escribir directo a su WhatsApp:*\nhttps://wa.me/${rawPhone}`;
+
+      fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: TELEGRAM_CHAT_ID,
+          text: tgText,
+          parse_mode: "Markdown"
+        }),
+        keepalive: true
+      }).catch((err) => console.warn("Telegram alert error:", err));
+    } catch (e) {
+      console.warn("Telegram notification notice:", e);
     }
 
     const messageLines = [
