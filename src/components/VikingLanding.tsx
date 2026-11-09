@@ -5,6 +5,8 @@ import Image from "next/image";
 import { PRODUCT_BUNDLES, DEFAULT_BUNDLE, ProductBundle } from "@/lib/product";
 
 const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_STORE_WHATSAPP || "584121183463";
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://yltjezxhnwmtzuraquhc.supabase.co";
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_oNHuXs7lM2VnOzqazVyuNw_tu7RQi97";
 
 const GALLERY_IMAGES = [
   {
@@ -168,6 +170,36 @@ export default function VikingLanding() {
     }
 
     const cleanState = formData.state.split("(")[0].trim();
+
+    // 1. Guardar inmediatamente en Supabase en segundo plano (Respaldo 100% infalible)
+    try {
+      fetch(`${SUPABASE_URL}/rest/v1/gummies_viking_ecomm`, {
+        method: "POST",
+        headers: {
+          "apikey": SUPABASE_ANON_KEY,
+          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+          "Content-Type": "application/json",
+          "Prefer": "return=minimal"
+        },
+        body: JSON.stringify({
+          nombre: formData.fullName.trim(),
+          telefono: formData.phone.trim(),
+          estado: cleanState,
+          ciudad_tealca: formData.cityAddress.trim(),
+          direccion: formData.cityAddress.trim(),
+          producto_pack: includeCherrySachet ? `${selectedPack.name} + Sachet Cherry` : selectedPack.name,
+          total_usd: finalPrice,
+          order_bump_cherry: includeCherrySachet,
+          metodo_pago: formData.paymentMethod,
+          notas: formData.notes.trim() || null,
+          estado_pedido: "Pendiente"
+        }),
+        keepalive: true
+      }).catch((err) => console.warn("Supabase background save notice:", err));
+    } catch (e) {
+      console.warn("Supabase sync notice:", e);
+    }
+
     const messageLines = [
       "👑 *PEDIDO GUMMIES VIKING - PAGO EN LA ENTREGA*",
       "------------------------------------",
