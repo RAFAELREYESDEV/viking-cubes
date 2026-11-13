@@ -91,6 +91,7 @@ export default function VikingLanding() {
   const [includeCherrySachet, setIncludeCherrySachet] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showStickyBar, setShowStickyBar] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   const finalPrice = selectedPack.price + (includeCherrySachet ? 4 : 0);
 
@@ -638,6 +639,18 @@ export default function VikingLanding() {
                 <span>•</span>
                 <span>🛡️ Cero riesgo</span>
               </div>
+
+              <p className="text-[10px] text-center text-[#8e8478] leading-tight pt-1.5 px-2">
+                🔒 Compra Protegida · Valija Nacional Tealca. Al ordenar aceptas nuestras{" "}
+                <button
+                  type="button"
+                  onClick={() => setShowTermsModal(true)}
+                  className="underline hover:text-[#1f1b18] font-semibold cursor-pointer"
+                >
+                  Condiciones de Entrega y Bioseguridad Sanitaria
+                </button>
+                .
+              </p>
             </form>
           </div>
         </section>
@@ -777,7 +790,89 @@ export default function VikingLanding() {
         <p className="max-w-md mx-auto text-[11px] leading-relaxed text-[#73685d]">
           Fórmula botánica con extractos de Borojó, Chontaduro y Minerales. Despacho nacional asegurado por Tealca con modalidad de Pago en la Entrega. © {new Date().getFullYear()}
         </p>
+
+        <div className="flex items-center justify-center gap-3 text-[11px] font-semibold text-[#857b70] mt-3">
+          <button
+            type="button"
+            onClick={() => setShowTermsModal(true)}
+            className="hover:text-emerald-700 underline cursor-pointer"
+          >
+            Políticas de Garantía y Bioseguridad (MPPS)
+          </button>
+          <span>•</span>
+          <button
+            type="button"
+            onClick={() => setShowTermsModal(true)}
+            className="hover:text-emerald-700 underline cursor-pointer"
+          >
+            Condiciones de Despacho Tealca
+          </button>
+        </div>
       </footer>
+
+      {/* MODAL DE POLÍTICAS Y BIOSEGURIDAD */}
+      {showTermsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-[#e8e1d5] max-h-[90vh] overflow-y-auto relative animate-in fade-in zoom-in-95 duration-200">
+            <button
+              type="button"
+              onClick={() => setShowTermsModal(false)}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#f3ede4] text-[#5c5349] hover:bg-[#e8e1d5] font-black flex items-center justify-center transition-colors cursor-pointer"
+              aria-label="Cerrar modal"
+            >
+              ✕
+            </button>
+
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xl">🛡️</span>
+              <h3 className="font-serif text-lg font-bold text-[#1f1b18]">
+                Términos, Garantía y Bioseguridad
+              </h3>
+            </div>
+
+            <div className="text-xs text-[#5c5349] space-y-3.5 leading-relaxed pr-1">
+              <div>
+                <h4 className="font-bold text-[#1f1b18] uppercase text-[11px] tracking-wide mb-1">
+                  1. Exclusión de Reembolso por Bioseguridad Sanitaria (MPPS)
+                </h4>
+                <p>
+                  De conformidad con las regulaciones sanitarias de la República Bolivariana de Venezuela para suplementos nutricionales de consumo oral y productos de cuidado personal íntimo, <strong>no se admiten devoluciones ni reembolsos de dinero una vez que el empaque primario o precinto de seguridad ha sido abierto o manipulado</strong> tras su retiro. Esta medida garantiza la pureza, esterilidad y seguridad para todos nuestros usuarios.
+                </p>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-[#1f1b18] uppercase text-[11px] tracking-wide mb-1">
+                  2. Variabilidad de Resultados Individuales
+                </h4>
+                <p>
+                  Gummies Viking es un suplemento botánico formulado con extractos naturales adaptogénicos. Los tiempos de absorción y respuesta física pueden variar según el metabolismo, contextura, edad y seguimiento de las pautas de consumo recomendadas de cada persona. No se conceden devoluciones basadas en expectativas o apreciaciones subjetivas de rendimiento.
+                </p>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-[#1f1b18] uppercase text-[11px] tracking-wide mb-1">
+                  3. Garantía de Valija Nacional y Transporte (Tealca)
+                </h4>
+                <p>
+                  Nuestra garantía de despacho cubre estrictamente extravío certificado por la empresa de encomiendas o paquetes que presenten daño físico severo al momento de su recepción. Todo reporte debe realizarse dentro de las primeras <strong>24 horas continuas</strong> tras el retiro en taquilla, suministrando soporte fotográfico y audiovisual claro del sobre sellado con la etiqueta de guía legible.
+                </p>
+              </div>
+
+              <div className="bg-[#fbf9f6] p-3 rounded-xl border border-[#e8e1d5] text-[11px] text-[#73685d]">
+                📍 <strong>Retiro en Taquilla Oficial:</strong> El pago se efectúa directamente en la taquilla de Tealca al verificar la integridad externa del sobre confidencial, perfeccionando formalmente la entrega.
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowTermsModal(false)}
+              className="mt-5 w-full bg-[#1f1b18] hover:bg-[#38322c] text-white font-bold text-xs py-3 rounded-xl transition-all cursor-pointer"
+            >
+              ENTENDIDO Y DE ACUERDO
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* STICKY BOTTOM BAR EN MÓVIL */}
       {showStickyBar && (
