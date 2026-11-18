@@ -1,4 +1,4 @@
-export type BundleId = "pack_3_pares" | "pack_1_par" | "pack_frasco_30";
+export type BundleId = "pack_3_pares" | "pack_1_par" | "pack_frasco_30" | "pack_duo_60";
 
 export type ProductBundle = {
   id: BundleId;
@@ -55,7 +55,7 @@ export const PRODUCT_BUNDLES: readonly ProductBundle[] = [
   },
   {
     id: "pack_frasco_30",
-    name: "Pote de 30 Gomitas",
+    name: "Pote 30 Gomitas",
     orderName: "Pote de 30 Gomitas Masticables · $45 Envío Gratis",
     unitLabel: "1 Frasco Completo",
     gummies: 30,
@@ -69,6 +69,23 @@ export const PRODUCT_BUNDLES: readonly ProductBundle[] = [
     recommended: false,
     badge: "MÁXIMA DURACIÓN",
     perDose: "$1.50 por dosis"
+  },
+  {
+    id: "pack_duo_60",
+    name: "2 Potes (60 Gomitas)",
+    orderName: "Combo Dúo: 2 Potes de 30 Gomitas (60 Gomitas) · $70 Envío Gratis",
+    unitLabel: "2 Frascos x 30 Gomitas (60 Dosis)",
+    gummies: 60,
+    price: 70,
+    cryptoPrice: 60,
+    regularPrice: 110,
+    savings: "¡2do Pote con 45% de descuento por solo $25 más!",
+    shipping: 0,
+    shippingLabel: "ENVÍO GRATIS POR TEALCA",
+    hasFreeShipping: true,
+    recommended: false,
+    badge: "MÁXIMO AHORRO · 2 FRASCOS",
+    perDose: "$1.16 por dosis"
   }
 ];
 

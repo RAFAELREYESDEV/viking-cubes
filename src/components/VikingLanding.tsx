@@ -3,6 +3,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { PRODUCT_BUNDLES, DEFAULT_BUNDLE, ProductBundle } from "@/lib/product";
+import {
+  TEALCA_MASTER,
+  VENEZUELA_STATES_LIST,
+  TealcaOffice
+} from "@/data/tealcaMaster";
 
 const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_STORE_WHATSAPP || "584121183463";
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://yltjezxhnwmtzuraquhc.supabase.co";
@@ -36,30 +41,6 @@ const GALLERY_IMAGES = [
     alt: "Gummies Viking Empaque Discreto",
     badge: "FOTO REAL"
   }
-];
-
-const VENEZUELA_STATES = [
-  "Caracas (Distrito Capital)",
-  "Miranda (Altos Mirandinos / Guarenas / Guatire)",
-  "Zulia (Maracaibo / Cabimas / San Francisco)",
-  "Carabobo (Valencia / Naguanagua / San Diego)",
-  "Aragua (Maracay / Turmero / Cagua)",
-  "Lara (Barquisimeto / Cabudare)",
-  "Anzoátegui (Barcelona / Puerto La Cruz / Lechería)",
-  "Bolívar (Puerto Ordaz / Ciudad Bolívar)",
-  "Nueva Esparta (Margarita / Porlamar)",
-  "Táchira (San Cristóbal)",
-  "Mérida (Mérida)",
-  "Falcón (Coro / Punto Fijo)",
-  "Monagas (Maturín)",
-  "Sucre (Cumaná)",
-  "Barinas (Barinas)",
-  "Portuguesa (Acarigua / Guanare)",
-  "Trujillo (Valera)",
-  "Yaracuy (San Felipe)",
-  "Guárico (San Juan / Calabozo)",
-  "La Guaira (Catia La Mar / Maiquetía)",
-  "Otro Estado de Venezuela"
 ];
 
 const TESTIMONIALS = [
@@ -99,11 +80,16 @@ export default function VikingLanding() {
   const [formData, setFormData] = useState({
     fullName: "",
     phone: "",
-    state: "Caracas (Distrito Capital)",
-    cityAddress: "",
+    cedula: "",
+    state: "", // Opcional
+    city: "", // Obligatoria
+    customCity: "",
+    tealcaOffice: "", // Sede Tealca
+    address: "", // Dirección exacta de entrega o agencia alternativa
     paymentMethod: "efectivo_divisas",
     notes: ""
   });
+  const [phoneWarning, setPhoneWarning] = useState("");
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -146,12 +132,128 @@ export default function VikingLanding() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let raw = e.target.value.replace(/[^0-9]/g, "");
+    
+    // Auto-corregir prefijo internacional o faltante
+    if (raw.startsWith("58") && raw.length > 2) {
+      raw = "0" + raw.slice(2);
+    } else if (raw.length >= 3 && !raw.startsWith("0") && (raw.startsWith("412") || raw.startsWith("414") || raw.startsWith("424") || raw.startsWith("416") || raw.startsWith("426"))) {
+      raw = "0" + raw;
+    }
+
+    if (raw.length > 11) raw = raw.slice(0, 11);
+
+    // Formatear visualmente 04XX-XXXXXXX
+    let formatted = raw;
+    if (raw.length > 4) {
+      formatted = `${raw.slice(0, 4)}-${raw.slice(4)}`;
+    }
+
+    // Detectar si el usuario intenta meter una cédula (ej: 7 u 8 dígitos sin prefijo 04)
+    if (raw.length >= 6 && !raw.startsWith("04")) {
+      setPhoneWarning("⚠️ Parece que escribiste tu número de cédula. Por favor coloca tu teléfono celular (0412, 0414, 0424...). Tu cédula va en la casilla de abajo.");
+    } else {
+      setPhoneWarning("");
+    }
+
+    setFormData((prev) => ({ ...prev, phone: formatted }));
+  };
+
+  const handleCedulaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value.toUpperCase().replace(/[^0-9VEve\-]/g, "");
+    const cleanDigits = val.replace(/[^0-9]/g, "");
+    if (cleanDigits.length > 9) return;
+    
+    let formatted = cleanDigits;
+    if (cleanDigits.length >= 7) {
+      if (cleanDigits.length === 7) {
+        formatted = `V-${cleanDigits.slice(0, 1)}.${cleanDigits.slice(1, 4)}.${cleanDigits.slice(4)}`;
+      } else if (cleanDigits.length === 8) {
+        formatted = `V-${cleanDigits.slice(0, 2)}.${cleanDigits.slice(2, 5)}.${cleanDigits.slice(5)}`;
+      } else {
+        formatted = `V-${cleanDigits.slice(0, 3)}.${cleanDigits.slice(3, 6)}.${cleanDigits.slice(6)}`;
+      }
+    } else if (cleanDigits.length > 0) {
+      formatted = `V-${cleanDigits}`;
+    }
+    setFormData((prev) => ({ ...prev, cedula: formatted }));
+  };
+
+  const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newState = e.target.value;
+    setFormData((prev) => {
+      const stateCities = newState && TEALCA_MASTER[newState] ? TEALCA_MASTER[newState].cities : [];
+      const cityStillValid = newState ? stateCities.includes(prev.city) : false;
+      return {
+        ...prev,
+        state: newState,
+        city: cityStillValid ? prev.city : "",
+        customCity: cityStillValid ? prev.customCity : "",
+        tealcaOffice: ""
+      };
+    });
+  };
+
+  const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newCity = e.target.value;
+    setFormData((prev) => ({
+      ...prev,
+      city: newCity,
+      customCity: newCity === "__OTRA__" ? prev.customCity : "",
+      tealcaOffice: ""
+    }));
+  };
+
+  // Ciudad efectiva (opcional) y Estado (obligatorio)
+  const effectiveCity = formData.city === "__OTRA__" ? formData.customCity.trim() : formData.city.trim();
+  const activeState = formData.state.trim();
+
+  // Calcular sucursales Tealca disponibles para este Estado (y Ciudad si la seleccionó)
+  const stateOffices: TealcaOffice[] = activeState && TEALCA_MASTER[activeState] ? TEALCA_MASTER[activeState].offices : [];
+  const cleanCity = (effectiveCity || "").toLowerCase().trim();
+  const directMatches: TealcaOffice[] = [];
+  const otherStateOffices: TealcaOffice[] = [];
+
+  stateOffices.forEach((o) => {
+    const oCity = (o.city || "").toLowerCase();
+    const oName = (o.name || "").toLowerCase();
+    const isCaracas = (activeState === "Distrito Capital" || cleanCity.includes("caracas") || cleanCity.includes("chacao") || cleanCity.includes("baruta") || cleanCity.includes("sucre"));
+
+    if (cleanCity && cleanCity !== "__otra__" && (isCaracas ? (oCity === "caracas" || oCity === "" || activeState === "Distrito Capital") : (oCity === cleanCity || oCity.includes(cleanCity) || cleanCity.includes(oCity) || oName.includes(cleanCity)))) {
+      directMatches.push(o);
+    } else {
+      otherStateOffices.push(o);
+    }
+  });
+
   const handleSubmitOrder = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.fullName.trim() || !formData.phone.trim() || !formData.cityAddress.trim()) {
-      setFormError("Por favor completa tu nombre, teléfono y dirección o agencia Tealca.");
+    if (!formData.fullName.trim() || !formData.phone.trim()) {
+      setFormError("Por favor completa tu nombre y número de WhatsApp.");
       return;
     }
+
+    const cleanPhoneDigits = formData.phone.replace(/[^0-9]/g, "");
+    if (cleanPhoneDigits.length < 10 || (!cleanPhoneDigits.startsWith("04") && !cleanPhoneDigits.startsWith("584"))) {
+      setFormError("Por favor ingresa un número celular válido de Venezuela (ej: 0412-1234567). Si escribiste tu cédula por error, colócala en el campo de Cédula.");
+      return;
+    }
+
+    const cleanCedDigits = formData.cedula.replace(/[^0-9]/g, "");
+    if (cleanCedDigits.length < 6) {
+      setFormError("Por favor ingresa tu Cédula de Identidad (requisito obligatorio de Tealca para autorizar el retiro en taquilla).");
+      return;
+    }
+    if (!formData.state.trim()) {
+      setFormError("Por favor selecciona tu Estado.");
+      return;
+    }
+    if (!formData.address.trim()) {
+      setFormError("Por favor escribe tu dirección exacta de entrega.");
+      return;
+    }
+
     setFormError("");
     setIsSubmitting(true);
 
@@ -172,9 +274,13 @@ export default function VikingLanding() {
       );
     }
 
-    const cleanState = formData.state.split("(")[0].trim();
+    const cleanState = formData.state.trim();
+    const destinationDesc = effectiveCity ? `${effectiveCity}, ${cleanState}` : cleanState;
+    const officeDesc = formData.tealcaOffice && formData.tealcaOffice !== "Entrega a Domicilio / Otra dirección"
+      ? formData.tealcaOffice
+      : "Entrega a Domicilio / Sin taquilla Tealca";
 
-    // 1. Guardar inmediatamente en Supabase en segundo plano (Respaldo 100% infalible)
+    // 1. Guardar inmediatamente en Supabase en segundo plano
     try {
       fetch(`${SUPABASE_URL}/rest/v1/gummies_viking_ecomm`, {
         method: "POST",
@@ -188,13 +294,13 @@ export default function VikingLanding() {
           nombre: formData.fullName.trim(),
           telefono: formData.phone.trim(),
           estado: cleanState,
-          ciudad_tealca: formData.cityAddress.trim(),
-          direccion: formData.cityAddress.trim(),
+          ciudad_tealca: effectiveCity ? `${effectiveCity} | ${officeDesc}` : `${cleanState} | ${officeDesc}`,
+          direccion: formData.address.trim(),
           producto_pack: includeCherrySachet ? `${selectedPack.name} + Sachet Cherry` : selectedPack.name,
           total_usd: finalPrice,
           order_bump_cherry: includeCherrySachet,
           metodo_pago: formData.paymentMethod,
-          notas: formData.notes.trim() || null,
+          notas: [formData.cedula ? `Cédula: ${formData.cedula.trim()}` : "", formData.notes.trim()].filter(Boolean).join(" | ") || null,
           estado_pedido: "Pendiente"
         }),
         keepalive: true
@@ -209,7 +315,7 @@ export default function VikingLanding() {
       if (rawPhone.startsWith("0")) rawPhone = "58" + rawPhone.slice(1);
       else if (!rawPhone.startsWith("58")) rawPhone = "58" + rawPhone;
 
-      const tgText = `👑 *¡NUEVO PEDIDO GUMMIES VIKING!*\n------------------------------------\n👤 *Cliente:* ${formData.fullName.trim()}\n📞 *Teléfono:* ${formData.phone.trim()}\n📍 *Estado:* ${cleanState}\n🏢 *Tealca / Dirección:* ${formData.cityAddress.trim()}\n📦 *Promo:* ${selectedPack.orderName}${includeCherrySachet ? " + Sachet Cherry" : ""}\n💵 *Total a Pagar:* $${finalPrice} USD\n🤝 *Pago:* ${formData.paymentMethod === "efectivo_divisas" ? "Efectivo Divisas ($)" : "Pago Móvil"}\n${formData.notes.trim() ? `📝 *Nota:* ${formData.notes.trim()}\n` : ""}------------------------------------\n📲 *Escribir directo a su WhatsApp:*\nhttps://wa.me/${rawPhone}`;
+      const tgText = `👑 *¡NUEVO PEDIDO GUMMIES VIKING!*\n------------------------------------\n👤 *Cliente:* ${formData.fullName.trim()}\n📞 *Teléfono:* ${formData.phone.trim()}\n📍 *Ubicación:* ${destinationDesc}\n🏢 *Sede Tealca:* ${officeDesc}\n🏠 *Dirección:* ${formData.address.trim()}\n📦 *Promo:* ${selectedPack.orderName}${includeCherrySachet ? " + Sachet Cherry" : ""}\n💵 *Total a Pagar:* $${finalPrice} USD\n🤝 *Pago:* ${formData.paymentMethod === "efectivo_divisas" ? "Efectivo Divisas ($)" : "Pago Móvil (BCV)"}\n${formData.notes.trim() ? `📝 *Nota:* ${formData.notes.trim()}\n` : ""}------------------------------------\n📲 *Escribir directo a su WhatsApp:*\nhttps://wa.me/${rawPhone}`;
 
       fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
         method: "POST",
@@ -231,10 +337,17 @@ export default function VikingLanding() {
       `📦 *Pedido:* ${selectedPack.orderName}${includeCherrySachet ? " + Sachet Cherry" : ""}`,
       `💵 *Total a pagar:* $${finalPrice} USD (Envío Gratis por Tealca)`,
       `👤 *A nombre de:* ${formData.fullName.trim()}`,
-      `📍 *Destino:* ${formData.cityAddress.trim()} (${cleanState})`,
+      `🪪 *Cédula de Identidad:* ${formData.cedula.trim()}`,
+      `📱 *Teléfono:* ${formData.phone.trim()}`,
+      `📍 *Destino:* ${destinationDesc}`,
+      formData.tealcaOffice && formData.tealcaOffice !== "Entrega a Domicilio / Otra dirección"
+        ? `🏢 *Sede Tealca de Retiro:* ${formData.tealcaOffice}`
+        : `🚚 *Modalidad:* Entrega a Domicilio / Otra Empresa`,
+      `🏠 *Dirección de Entrega:* ${formData.address.trim()}`,
+      `💳 *Pago al Recibir:* ${formData.paymentMethod === "efectivo_divisas" ? "Efectivo Divisas ($)" : "Pago Móvil (Tasa BCV)"}`,
       "",
       "¿Me confirman para coordinar el despacho por favor? 🙏✨"
-    ];
+    ].filter(Boolean);
 
     const message = messageLines.join("\n");
     const cleanPhone = WHATSAPP_NUMBER.replace(/\D/g, "");
@@ -427,7 +540,7 @@ export default function VikingLanding() {
           </div>
 
           {/* Cards de Packs */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8">
             {PRODUCT_BUNDLES.map((bundle) => {
               const isSelected = selectedPack.id === bundle.id;
               return (
@@ -516,67 +629,259 @@ export default function VikingLanding() {
                 />
               </div>
 
+              {/* TELÉFONO WHATSAPP CON MÁSCARA INTELIGENTE */}
               <div>
-                <label className="block text-xs font-bold text-[#38322c] mb-1">
-                  Número de WhatsApp * (Para coordinar la entrega)
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-[#38322c]">
+                    Número de WhatsApp Celular *
+                  </label>
+                  <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded-md border border-rose-200">
+                    0412 / 0414 / 0424 / 0416 / 0426
+                  </span>
+                </div>
                 <input
                   type="tel"
                   name="phone"
                   required
-                  placeholder="Ej: 0412 123 4567"
+                  maxLength={12}
+                  placeholder="Ej: 0412-1234567"
                   value={formData.phone}
-                  onChange={handleInputChange}
-                  className="w-full bg-[#faf8f5] border border-[#d8cec0] focus:border-rose-600 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm outline-hidden transition-all"
+                  onChange={handlePhoneChange}
+                  className="w-full bg-[#faf8f5] border border-[#d8cec0] focus:border-rose-600 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm font-mono outline-hidden transition-all"
                 />
+                {phoneWarning && (
+                  <p className="text-[11px] font-semibold text-rose-600 mt-1 bg-rose-50 p-2 rounded-lg border border-rose-200">
+                    {phoneWarning}
+                  </p>
+                )}
               </div>
 
+              {/* CÉDULA DE IDENTIDAD (OBLIGATORIA PARA TAQUILLA TEALCA) */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-[#38322c]">
+                    Cédula de Identidad del Destinatario *
+                  </label>
+                  <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200">
+                    Requisito de Tealca
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  name="cedula"
+                  required
+                  maxLength={14}
+                  placeholder="Ej: V-18.500.234"
+                  value={formData.cedula}
+                  onChange={handleCedulaChange}
+                  className="w-full bg-[#faf8f5] border border-[#d8cec0] focus:border-rose-600 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm font-mono outline-hidden transition-all"
+                />
+                <p className="text-[10px] text-slate-500 mt-1">
+                  🔒 <em>Tealca exige cédula real para autorizar la entrega en taquilla al momento de retirar.</em>
+                </p>
+              </div>
+
+              {/* ESTADO (OBLIGATORIO) Y CIUDAD (OPCIONAL, SE DESBLOQUEA AL ELEGIR ESTADO) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-[#38322c] mb-1">
-                    Estado *
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-[#38322c]">
+                      Estado *
+                    </label>
+                    <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded-md border border-rose-200">
+                      Obligatorio
+                    </span>
+                  </div>
                   <select
                     name="state"
+                    required
                     value={formData.state}
-                    onChange={handleInputChange}
-                    className="w-full bg-[#faf8f5] border border-[#d8cec0] focus:border-rose-600 focus:bg-white rounded-xl px-3 py-2.5 text-xs outline-hidden transition-all"
+                    onChange={handleStateChange}
+                    className="w-full bg-[#faf8f5] border border-[#d8cec0] focus:border-rose-600 focus:bg-white rounded-xl px-3 py-2.5 text-xs outline-hidden transition-all text-[#1f1b18] font-medium"
                   >
-                    {VENEZUELA_STATES.map((st) => (
+                    <option value="">-- Selecciona tu Estado * --</option>
+                    {VENEZUELA_STATES_LIST.map((st) => (
                       <option key={st} value={st}>{st}</option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#38322c] mb-1">
-                    Método de Pago al Recibir *
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-[#38322c]">
+                      Ciudad / Municipio <span className="text-[#8e8478] font-normal">(Opcional)</span>
+                    </label>
+                    <span className="text-[10px] font-medium text-neutral-500 bg-neutral-100 px-1.5 py-0.5 rounded-md">
+                      Opcional
+                    </span>
+                  </div>
                   <select
-                    name="paymentMethod"
-                    value={formData.paymentMethod}
-                    onChange={handleInputChange}
-                    className="w-full bg-[#faf8f5] border border-[#d8cec0] focus:border-rose-600 focus:bg-white rounded-xl px-3 py-2.5 text-xs outline-hidden transition-all"
+                    name="city"
+                    disabled={!formData.state}
+                    value={formData.city}
+                    onChange={handleCityChange}
+                    className={`w-full border rounded-xl px-3 py-2.5 text-xs outline-hidden transition-all text-[#1f1b18] ${
+                      !formData.state
+                        ? "bg-[#f0ebe1] border-[#ded5c7] text-[#9c9182] cursor-not-allowed opacity-75"
+                        : "bg-[#faf8f5] border-[#d8cec0] focus:border-rose-600 focus:bg-white"
+                    }`}
                   >
-                    <option value="efectivo_divisas">💵 Efectivo Divisas ($) al recibir</option>
-                    <option value="pago_movil">📲 Pago Móvil (tasa oficial) al recibir</option>
+                    {!formData.state ? (
+                      <option value="">🔒 Selecciona tu Estado primero</option>
+                    ) : (
+                      <>
+                        <option value="">-- (Opcional) Selecciona Ciudad --</option>
+                        {(TEALCA_MASTER[formData.state]?.cities || []).map((c) => (
+                          <option key={c} value={c}>{c}</option>
+                        ))}
+                        <option value="__OTRA__">➕ Otra ciudad o poblado...</option>
+                      </>
+                    )}
                   </select>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-[#38322c] mb-1">
-                  Dirección exacta o Agencia Tealca más cercana *
-                </label>
-                <input
-                  type="text"
-                  name="cityAddress"
-                  required
-                  placeholder="Ej: Urb. Los Palos Grandes o Agencia Tealca Chacao"
-                  value={formData.cityAddress}
+              {/* INPUT CONDICIONAL: OTRA CIUDAD (OPCIONAL) */}
+              {formData.city === "__OTRA__" && (
+                <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-xl">
+                  <label className="block text-xs font-bold text-amber-900 mb-1">
+                    Escribe el nombre de tu Ciudad o Poblado <span className="text-amber-700/80 font-normal">(Opcional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="customCity"
+                    placeholder="Ej: Biscucuy / Mucuchíes / San Joaquín"
+                    value={formData.customCity}
+                    onChange={handleInputChange}
+                    className="w-full bg-white border border-amber-300 focus:border-rose-600 rounded-xl px-3.5 py-2 text-xs outline-hidden transition-all text-[#1f1b18]"
+                  />
+                </div>
+              )}
+
+              {/* SUCURSAL TEALCA (OPCIONAL) */}
+              <div className="bg-[#f5f1eb] p-3 rounded-2xl border border-[#ded5c7]">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-[#1f1b18] flex items-center gap-1.5">
+                    <span>🏢 Sede Tealca de Retiro <span className="text-[#8e8478] font-normal">(Opcional)</span></span>
+                  </label>
+                  <span className="text-[10px] bg-slate-200 text-slate-700 font-bold px-2 py-0.5 rounded-full">
+                    Opcional
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#6b6155] mb-2 leading-tight">
+                  {formData.state
+                    ? "Si deseas retirar en taquilla oficial Tealca, elige tu sede de preferencia:"
+                    : "Elige tu Estado para ver las sedes Tealca disponibles si deseas retirar en taquilla:"}
+                </p>
+                <select
+                  name="tealcaOffice"
+                  value={formData.tealcaOffice}
                   onChange={handleInputChange}
-                  className="w-full bg-[#faf8f5] border border-[#d8cec0] focus:border-rose-600 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm outline-hidden transition-all"
+                  className="w-full bg-white border border-[#cfc4b2] focus:border-rose-600 rounded-xl px-3 py-2.5 text-xs outline-hidden transition-all text-[#1f1b18] font-medium"
+                >
+                  <option value="">
+                    {formData.state
+                      ? "-- (Opcional) Retirar en taquilla Tealca --"
+                      : "-- Selecciona tu Estado para ver sedes --"}
+                  </option>
+                  <option value="Entrega a Domicilio / Otra dirección">
+                    🏠 Prefiero entrega en mi dirección exacta (Sin taquilla Tealca)
+                  </option>
+                  {directMatches.length > 0 && (
+                    <optgroup label={`📍 Sedes Tealca en ${effectiveCity}`}>
+                      {directMatches.map((o) => (
+                        <option key={o.code} value={`[${o.code}] ${o.name}${o.city ? ` (${o.city})` : ''}`}>
+                          🏢 [{o.code}] {o.name}{o.city ? ` - ${o.city}` : ''}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {otherStateOffices.length > 0 && (
+                    <optgroup label={directMatches.length > 0 ? `Otras sedes en el Estado ${formData.state}` : `Sedes Tealca en ${formData.state} (${otherStateOffices.length} disponibles)`}>
+                      {otherStateOffices.map((o) => (
+                        <option key={o.code} value={`[${o.code}] ${o.name}${o.city ? ` (${o.city})` : ''}`}>
+                          🏢 [{o.city || formData.state}] [{o.code}] {o.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                </select>
+
+                {effectiveCity && directMatches.length === 0 && (
+                  <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200/70 rounded-lg p-2 mt-2 leading-snug">
+                    ℹ️ <em>Nota:</em> En <strong>{effectiveCity}</strong> no hay taquilla física directa de Tealca. Despacharemos directo a tu <strong>dirección exacta</strong> o la agencia que indiques abajo.
+                  </p>
+                )}
+              </div>
+
+              {/* DIRECCIÓN EXACTA DE ENTREGA (OBLIGATORIA) */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-[#38322c]">
+                    Dirección exacta de entrega (Calle, Casa/Edif, Referencia) *
+                  </label>
+                  <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded-md border border-rose-200">
+                    Obligatoria
+                  </span>
+                </div>
+                <textarea
+                  name="address"
+                  required
+                  rows={2}
+                  placeholder="Ej: Calle Bolívar con Av. Miranda, Casa #24, frente a la panadería (o indicar: Retiro en Zoom / MRW)"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                  className="w-full bg-[#faf8f5] border border-[#d8cec0] focus:border-rose-600 focus:bg-white rounded-xl px-3.5 py-2.5 text-xs outline-hidden transition-all resize-none text-[#1f1b18]"
                 />
+                
+                {/* AVISO EXPLICATIVO SEGÚN REQUERIMIENTO DEL USUARIO */}
+                <div className="mt-1.5 p-2.5 bg-amber-50/70 border border-amber-200/90 rounded-xl text-[11px] text-[#7a5316] leading-relaxed">
+                  <div className="font-bold flex items-center gap-1 text-amber-900 mb-0.5">
+                    <span>📦 Nota importante sobre el despacho:</span>
+                  </div>
+                  <p>
+                    Nuestros envíos se realizan por defecto a taquilla oficial de <strong>Tealca</strong> con flete gratis. Sin embargo, <strong>no es obligatorio enviarlo por Tealca</strong>: si no deseas o no puedes retirar en Tealca, o en tu zona no hay agencia y prefieres entrega directa a tu casa/trabajo o por otra encomienda (ej. <strong>ZOOM o MRW</strong>), <strong>escríbelo aquí en este campo de dirección</strong> y con gusto lo coordinamos por WhatsApp.
+                  </p>
+                </div>
+              </div>
+
+              {/* FORMA DE PAGO AL RECIBIR */}
+              <div>
+                <label className="block text-xs font-bold text-[#38322c] mb-1.5">
+                  Método de Pago al Recibir *
+                </label>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <label className={`flex items-center gap-2 p-2.5 border rounded-xl cursor-pointer transition-all ${
+                    formData.paymentMethod === "efectivo_divisas"
+                      ? "bg-rose-50/70 border-rose-600 font-bold text-rose-900"
+                      : "bg-[#faf8f5] border-[#d8cec0] text-[#38322c]"
+                  }`}>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="efectivo_divisas"
+                      checked={formData.paymentMethod === "efectivo_divisas"}
+                      onChange={handleInputChange}
+                      className="accent-rose-600"
+                    />
+                    <span>💵 Efectivo Divisas ($)</span>
+                  </label>
+                  <label className={`flex items-center gap-2 p-2.5 border rounded-xl cursor-pointer transition-all ${
+                    formData.paymentMethod === "pago_movil"
+                      ? "bg-rose-50/70 border-rose-600 font-bold text-rose-900"
+                      : "bg-[#faf8f5] border-[#d8cec0] text-[#38322c]"
+                  }`}>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="pago_movil"
+                      checked={formData.paymentMethod === "pago_movil"}
+                      onChange={handleInputChange}
+                      className="accent-rose-600"
+                    />
+                    <span>📲 Pago Móvil (BCV)</span>
+                  </label>
+                </div>
               </div>
 
               {/* ORDER BUMP: SACHET LUBRICANTE CHERRY */}
